@@ -1,12 +1,13 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "ui_displaywindow.h"
+//#include "calibrationdialog.h"
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
+	QMainWindow(parent),
+	ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
     synchro_box_1 = new QComboBox;
     polarity_box_1 = new QComboBox;
     clmode_box_1 = new QComboBox;
@@ -38,7 +39,6 @@ MainWindow::MainWindow(QWidget *parent) :
 		clfrequency_vec[i]->addItem("85MHz");
 	}
 
-    display_window = {ui->display_1, ui->display_2};
     connect(ui->parameter_1,SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(openEditor_1(QTreeWidgetItem*, int)));
     connect(ui->parameter_1,SIGNAL(itemSelectionChanged()), this, SLOT(closeEditor_1()));
 	connect(ui->parameter_2, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(openEditor_2(QTreeWidgetItem*, int)));
@@ -46,64 +46,97 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->parameter_1->setStyleSheet("QTreeWidget::item{height:25px}");
     ui->parameter_2->setStyleSheet("QTreeWidget::item{height:25px}");
-
-	isloaded = false;
 }
 
 MainWindow::~MainWindow()
 {
+	delete sysboards;
+	sysboards = nullptr;
     delete ui;
 }
 
 void MainWindow::on_load_clicked()
 {
-	if (isloaded == true)
+	if (sysboards!=nullptr)
 	{
-		for (auto item : v)
+		for (size_t i = 0; i < display_window_ptr_vec.size(); i++)
 		{
-			if (item == nullptr) continue;
-			item->Stop_Acquire();
+			QObject::disconnect(display_window_ptr_vec[i], SLOT(freshWindow(QImage)));
 		}
-		delete imagedisplay;
-		v.resize(0);
+		for (auto &item : display_window_ptr_vec)
+		{
+			delete item;
+		}
+		for (auto &item : image_control_ptr_vec)
+		{
+			delete item;
+		}
+		delete sysboards;
+		sysboards = nullptr;
 	}
-	sysboards.InitialSystemImageCaptureBoards();
-	global_board_ptr = &(*sysboards.m_VecOfImageCaptureBoard.begin());
-    global_board_ptr->RefreshPortConnectStatus();
-    for (size_t i = 0; i < global_board_ptr->m_PortAmount; i++)
+	sysboards = new SystemImageCaptureBoards;
+	sysboards->InitialSystemImageCaptureBoards();
+	//默认取第一块采集卡，当有多张采集卡时再更改
+	if (sysboards->GetBoardsAmount() > 0)
+	{
+		first_board_ptr = &(sysboards->GetImageCaptureBoardRefbyIndex(0));
+	}
+	first_board_ptr->RefreshPortConnectStatus();
+	auto CameraConnectStatus = first_board_ptr->GetCameraConnectStatus();
+    for (size_t i = 0; i < first_board_ptr->GetBoardPortAmount(); i++)
     {
-        if (!global_board_ptr->m_CameraConnectStatus[i]) continue;
+		if (!CameraConnectStatus[i])
+		{
+			status[i]->setText("disConnected");
+			set_vec[i]->setEnabled(false);
+			parameterTree[i]->setEnabled(false);
+			continue;
+		}
         status[i]->setText("Connected");
 		set_vec[i]->setEnabled(true);
 		parameterTree[i]->setEnabled(true);
-        para = global_board_ptr->GetCameraParameter(i);
-        showParameters(i);
     }
-
-    for (size_t i = 0; i < global_board_ptr->m_CameraConnectStatus.size(); i++)
-    {
-        if (global_board_ptr->m_CameraConnectStatus[i])
-        {
-            imagedisplay = new ImageDisplayControler(*global_board_ptr, i);
-            v.push_back(imagedisplay);
-            if (i == 0)
-                connect(imagedisplay, SIGNAL(sendImage(QImage)), this, SLOT(showImage_1(QImage)));
-            else
-                connect(imagedisplay, SIGNAL(sendImage(QImage)), this, SLOT(showImage_2(QImage)));
-            v[i]->Regist();
-        }
-        else
-            v.push_back(nullptr);
-    }
-	isloaded = true;
+	image_control_ptr_vec = std::vector<Base_ImageContrler*>(first_board_ptr->GetBoardPortAmount(), nullptr);
+	display_window_ptr_vec = std::vector<DisplayWindow *>(first_board_ptr->GetBoardPortAmount(), nullptr);
+	for (size_t i = 0; i < CameraConnectStatus.size(); i++)
+	{
+		if (CameraConnectStatus[i] && display_window_ptr_vec[i] == nullptr)
+		{
+			auto tmp_ptr = new DisplayWindow();
+			display_window_ptr_vec[i] = tmp_ptr;
+			if (i == 0)
+			{
+				ui->mdiArea_1->addSubWindow(tmp_ptr);
+				tmp_ptr->show();
+				ui->mdiArea_1->activeSubWindow();
+			}
+			else
+			{
+				ui->mdiArea_2->addSubWindow(tmp_ptr);
+				tmp_ptr->show();
+				ui->mdiArea_2->activeSubWindow();
+			}
+		}
+	}
+	for (size_t i = 0; i < CameraConnectStatus.size(); i++)
+	{
+		if (CameraConnectStatus[i] && image_control_ptr_vec[i] == nullptr)
+		{
+			auto tmp_ptr = new ImageDisplayControler(*first_board_ptr, i);
+			image_control_ptr_vec[i] = tmp_ptr;
+			connect(tmp_ptr, SIGNAL(sendImage(QImage)), display_window_ptr_vec[i], SLOT(freshWindow(QImage)));
+			showParameters(i);
+		}
+	}
 }
 
 void MainWindow::showParameters(size_t i)
 {
-    para = global_board_ptr->GetCameraParameter(i);
+	Base_ImageContrler *img_ctrl_ptr = image_control_ptr_vec[i];
+    auto para = img_ctrl_ptr->GetCameraParameter();
     parameterTree[i]->topLevelItem(0)->setText(1, QString::fromStdString(para.m_ImageWidth));
     parameterTree[i]->topLevelItem(1)->setText(1, QString::fromStdString(para.m_ImageHeight));
-    parameterTree[i]->topLevelItem(2)->setText(1, QString::fromStdString(para.m_ImageRate));
+    parameterTree[i]->topLevelItem(2)->setText(1, QString::fromStdString(para.m_FrameFrequency));
     parameterTree[i]->topLevelItem(3)->setText(1, QString::fromStdString(para.m_ExposureTime));
 
     parameterTree[i]->setItemWidget(parameterTree[i]->topLevelItem(4), 1, synchro_vec[i]);
@@ -133,41 +166,46 @@ void MainWindow::setParameters(size_t k)
 	QString clmode = clmode_vec[k]->currentText();
 	QString clfrequency = clfrequency_vec[k]->currentText();
 
-    for (size_t i = 0; i < global_board_ptr->m_CameraConnectStatus.size(); i++)
+	CameraParameters cam_para;
+	cam_para.m_ImageWidth = width.toStdString();
+	cam_para.m_ImageHeight = height.toStdString();
+	cam_para.m_ExposureTime = exposure.toStdString();
+	cam_para.m_FrameFrequency = frameRate.toStdString();
+	if (synchro == "Intern")
+		cam_para.m_Synchro = std::string("0");
+	else if (synchro == "Extern")
+		cam_para.m_Synchro = std::string("1");
+
+	if (polarity == "Positive edge")
+		cam_para.m_Polarity = std::string("11");
+	else if (polarity == "Positive level")
+		cam_para.m_Polarity = std::string("10");
+	else if (polarity == "Negative edge")
+		cam_para.m_Polarity = std::string("01");
+	else if (polarity == "Negative level")
+		cam_para.m_Polarity = std::string("00");
+
+	if (clmode == "2×8 bits")
+		cam_para.m_CLMode = std::string("0");
+	else if (clmode == "2×10 bits")
+		cam_para.m_CLMode = std::string("1");
+
+	if (clfrequency == "66MHz")
+		cam_para.m_CameraLinkFrequency = std::string("0");
+	else if (clfrequency == "75MHz")
+		cam_para.m_CameraLinkFrequency = std::string("1");
+	else if (clfrequency == "85MHz")
+		cam_para.m_CameraLinkFrequency = std::string("2");
+	
+	first_board_ptr->RefreshPortConnectStatus();
+	auto CameraConnectStatus = first_board_ptr->GetCameraConnectStatus();
+	
+    for (size_t i = 0; i < image_control_ptr_vec.size(); i++)
     {
-		if (!global_board_ptr->m_CameraConnectStatus[i]) continue;
-		global_board_ptr->command_SetFrameFormat(i, width.toInt(), height.toInt());
-        global_board_ptr->command_SetFrameRate(i, frameRate.toInt());
-        global_board_ptr->command_SetExposure(i, exposure.toInt());
-        if (synchro == "Intern")
-            global_board_ptr->command_SetInternSynchro(i);
-        else if (synchro == "Extern")
-            global_board_ptr->command_SetExternSynchro(i);
-        if (polarity == "Positive edge")
-            global_board_ptr->command_SetPositiveEdge(i);
-        else if (polarity == "Positive level")
-            global_board_ptr->command_SetPositiveLevel(i);
-        else if (polarity == "Negative edge")
-            global_board_ptr->command_SetNegativeEdge(i);
-        else if (polarity == "Negative level")
-            global_board_ptr->command_SetNegativeLevel(i);
-
-        if (clmode == "2×8 bits")
-            global_board_ptr->command_SetBase_2_8_bits(i);
-        else if (clmode == "2×10 bits")
-            global_board_ptr->command_SetBase_2_10_bits(i);
-
-        if (clfrequency == "66MHz")
-            global_board_ptr->command_SetCameraLinkFrequency(1, 0);
-        else if (clfrequency == "75MHz")
-            global_board_ptr->command_SetCameraLinkFrequency(1, 1);
-        else if (clfrequency == "85MHz")
-            global_board_ptr->command_SetCameraLinkFrequency(1, 2);
-
-        para = global_board_ptr->GetCameraParameter(i);
+		if (!CameraConnectStatus[i]) continue;
+		image_control_ptr_vec[i]->SetCameraParameter(cam_para);
         showParameters(i);
     }
-
 }
 
 void MainWindow::on_set_1_clicked()
@@ -180,42 +218,47 @@ void MainWindow::on_set_2_clicked()
     setParameters(1);
 }
 
-void MainWindow::showImage_1(QImage qImg)
+void MainWindow::on_play_clicked()
 {
-    ui->display_1->setPixmap(QPixmap::fromImage(qImg));
-}
-
-void MainWindow::showImage_2(QImage qImg)
-{
-    ui->display_2->setPixmap(QPixmap::fromImage(qImg));
-}
-
-void MainWindow::on_start_clicked()
-{
-    for (auto item : v)
+	//todo：开始之后变灰
+	for (auto & item: image_control_ptr_vec)
+	{
+		if (item == nullptr) continue;
+		item->Regist();
+	}
+	
+    for (auto item : image_control_ptr_vec)
     {
         if (item == nullptr) continue;
         item->Run_Acquire();
     }
 }
 
+void MainWindow::on_record_clicked()
+{
+	for (auto &item : image_control_ptr_vec)
+	{
+		item->is_recording = true;
+	}
+}
+
 void MainWindow::on_stop_clicked()
 {
-    for (auto item : v)
+	//todo:未录制时为灰，录制后方可使用
+    for (auto item : image_control_ptr_vec)
     {
-        if (item == nullptr) continue;
+		if (item == nullptr) continue;
+		item->is_recording = false;
         item->Stop_Acquire();
     }
 }
 
-void MainWindow::on_pause_clicked()
-{
-    for (auto item : v)
-    {
-        if (item == nullptr) continue;
-        item->Pause_Acquire();
-    }
-}
+//void MainWindow::on_calibration_clicked()
+//{
+//	//显示标定对话框
+//	CalibDialog* calibdialog = new CalibDialog;
+//	calibdialog->exec();
+//}
 
 void MainWindow::openEditor_1(QTreeWidgetItem *item, int column)
 {
@@ -251,3 +294,19 @@ void MainWindow::closeEditor_2()
 	}
 }
 
+DisplayWindow::DisplayWindow(QWidget *parent) :
+	QWidget(parent),
+	ui(new Ui::DisplayWindow)
+{
+	ui->setupUi(this);
+}
+
+DisplayWindow::~DisplayWindow()
+{
+	delete ui;
+}
+
+void DisplayWindow::freshWindow(QImage img)
+{
+	ui->display_label->setPixmap(QPixmap::fromImage(img));
+}

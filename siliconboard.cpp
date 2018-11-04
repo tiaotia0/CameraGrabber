@@ -1,5 +1,5 @@
 #include "siliconboard.h"
-
+#include <iostream>
 size_t SystemImageCaptureBoards::DetectNrOfBoards()
 {
 	int nrOfBoards = 0;
@@ -60,7 +60,7 @@ void SystemImageCaptureBoards::DetectSystemImageCaptureBoardsInfo()
 	}
 }
 
-std::vector<ImageCaptureBoard>& SystemImageCaptureBoards::InitialSystemImageCaptureBoards()
+void SystemImageCaptureBoards::InitialSystemImageCaptureBoards()
 {
 	//返回正常初始化的采集卡的数量
 	DetectNrOfBoards();
@@ -70,7 +70,7 @@ std::vector<ImageCaptureBoard>& SystemImageCaptureBoards::InitialSystemImageCapt
 	for (auto &item : m_VecOfImageCaptureBoard)
 	{
 		const char *applet;
-		switch (Fg_getBoardType(item.m_enumBoardType))
+		switch (item.m_enumBoardType)
 		{
 		case PN_MICROENABLE4AS1CL:
 			applet = "SingleAreaGray16";
@@ -122,9 +122,7 @@ std::vector<ImageCaptureBoard>& SystemImageCaptureBoards::InitialSystemImageCapt
 		}
 		if(cnt==this->m_VecOfImageCaptureBoard[i].m_PortAmount)
 			m_VecOfImageCaptureBoard[i].m_IsInitialed = true;
-		
 	}
-	return m_VecOfImageCaptureBoard;
 }
 
 SystemImageCaptureBoards::~SystemImageCaptureBoards()
@@ -172,6 +170,7 @@ int ImageCaptureBoard::WriteData(size_t port_index, const char *buf_to_write, si
 void ImageCaptureBoard::ReadParameter(size_t port_index, std::string &buf_to_save)
 {
 	int len = 100;
+	Sleep(50);
 	do {
 		char tmpRet[512];
 		len = ReadData(port_index, tmpRet, sizeof(tmpRet));
@@ -184,9 +183,9 @@ void ImageCaptureBoard::ReadParameter(size_t port_index, std::string &buf_to_sav
 
 bool ImageCaptureBoard::WriteParameter(size_t port_index, const std::string &buf_to_write)
 {
+	Sleep(100);
 	if (WriteData(port_index, &buf_to_write[0], buf_to_write.size()) > 0)
 	{
-		Sleep(35);
 		return true;
 	}
 	else return false;
@@ -215,44 +214,40 @@ int ImageCaptureBoard::RefreshPortConnectStatus()
 			m_CameraConnectStatus.push_back(true);
 		}
 	}
-	////采集卡控制相机
-	//for (int i = 0; i < this->m_PortAmount; i++)
-	//{
-
-	//}
 	return cnt;
+}
+
+std::vector<std::string> ImageCaptureBoard::split(const std::string& str, const std::string& delim)
+{
+	using std::vector;
+	using std::string;
+	vector<string> res;
+	if ("" == str) return res;
+	//先将要切割的字符串从string类型转换为char*类型
+	char * strs = new char[str.length() + 1]; //不要忘了
+	strcpy(strs, str.c_str());
+
+	char * d = new char[delim.length() + 1];
+	strcpy(d, delim.c_str());
+
+	char *p = strtok(strs, d);
+	while (p) {
+		string s = p; //分割得到的字符串转换为string类型
+		res.push_back(s); //存入结果数组
+		p = strtok(NULL, d);
+	}
+	delete[]strs;
+	return res;
 }
 
 CameraParameters ImageCaptureBoard::GetCameraParameter(size_t port_index)
 {
 	using std::vector;
 	using std::string;
-	auto split = [](const std::string& str, const std::string& delim)->std::vector<std::string>
-	{
-		vector<string> res;
-		if ("" == str) return res;
-		//先将要切割的字符串从string类型转换为char*类型
-		char * strs = new char[str.length() + 1]; //不要忘了
-		strcpy(strs, str.c_str());
-
-		char * d = new char[delim.length() + 1];
-		strcpy(d, delim.c_str());
-
-		char *p = strtok(strs, d);
-		while (p) {
-			string s = p; //分割得到的字符串转换为string类型
-			res.push_back(s); //存入结果数组
-			p = strtok(NULL, d);
-		}
-		delete[]strs;
-		return res;
-	};
-
 	CameraParameters result;
 	//刷新当前相机状态
 	RefreshPortConnectStatus();
 	if (!m_CameraConnectStatus[port_index]) return result;
-
 	//获取全部参数并预处理
 	WriteParameter(port_index, std::string("#X\r"));
 	std::string read_tmp;
@@ -260,52 +255,79 @@ CameraParameters ImageCaptureBoard::GetCameraParameter(size_t port_index)
 	read_tmp = std::regex_replace(read_tmp, std::regex("[^0-9\r\n,]"), std::string(""));
 	vector<string> split_tmp = split(read_tmp, string("\r\n"));
 	if (split_tmp.size() < 18) return result;
-
 	// m_ImageWidth + m_ImageHeight;
 	vector<string> vec_tmp_wh = split(split_tmp[3], string(","));
 	result.m_ImageWidth = vec_tmp_wh[0];
 	result.m_ImageHeight = vec_tmp_wh[1];
 	// m_ImageRate;
-	result.m_ImageRate = split_tmp[6];
+	result.m_FrameFrequency = split_tmp[6];
 	// m_ExposureTime;
 	result.m_ExposureTime = split_tmp[7];
 	// m_Synchro;
 	if (split_tmp[14][0] == '0')
 	{
-		result.m_Synchro = "Intern";
+		result.m_Synchro = '0';
 	}
 	else if (split_tmp[14][0] == '1')
 	{
-		result.m_Synchro = "Extern";
+		result.m_Synchro = '1';
 	}
 	// m_Polarity;
 	string polar_tmp = split_tmp[16] + split_tmp[15];
 	if (polar_tmp == "00")
-	{
-		result.m_Polarity = "Negative Level";
+	{	//Negative Level
+		result.m_Polarity = "00";
 	}
 	else if (polar_tmp == "01")
-	{
-		result.m_Polarity = "Negative Edge";
+	{	//Negative Edge
+		result.m_Polarity = "01";
 	}
 	else if (polar_tmp == "10")
-	{
-		result.m_Polarity = "Positive Level";
+	{	//Positive Level
+		result.m_Polarity = "10";
 	}
 	else if (polar_tmp == "11")
-	{
-		result.m_Polarity = "Positive Edge";
+	{	//Positive Edge
+		result.m_Polarity = "11";
 	}
 	// m_CLMode;
 	int syn_size = split_tmp[0].length();
 	if (split_tmp[0][syn_size - 1] == '0')
-	{
-		result.m_CLMode = "2×8 bits";
+	{	//2x8 bits
+		result.m_CLMode = '0';
 	}
 	else if (split_tmp[0][syn_size - 1] == '1')
-	{
-		result.m_CLMode = "2×10 bits";
+	{	//2x10 bits
+		result.m_CLMode = '1';
 	}
+	//m_CameraLinkFrequency
+	WriteParameter(port_index, string("#c\r"));
+	string CameraLinkFrequency_tmp;
+	ReadParameter(port_index, CameraLinkFrequency_tmp);
+	CameraLinkFrequency_tmp = std::regex_replace(CameraLinkFrequency_tmp, std::regex("[^0-9]"), std::string(""));
+	if (CameraLinkFrequency_tmp == "0")
+	{	//66
+		result.m_CameraLinkFrequency = "0";
+	}
+	else if (CameraLinkFrequency_tmp == "1")
+	{	//75
+		result.m_CameraLinkFrequency = "1";
+	}
+	else if (CameraLinkFrequency_tmp == "2")
+	{	//85
+		result.m_CameraLinkFrequency = "2";
+	}
+	return result;
+}
+
+CameraMaxExposureTime_MaxFPS ImageCaptureBoard::GetCameraMaxExposureTime_MaxFPS(size_t port_index)
+{
+	using std::vector;
+	using std::string;
+	CameraMaxExposureTime_MaxFPS result;
+	//刷新当前相机状态
+	RefreshPortConnectStatus();
+	if (!m_CameraConnectStatus[port_index]) return result;
 	//m_ImageMaxRate + m_ImageMaxExposureTime
 	WriteParameter(port_index, string("#A\r"));
 	WriteParameter(port_index, string("#a\r"));
@@ -313,7 +335,7 @@ CameraParameters ImageCaptureBoard::GetCameraParameter(size_t port_index)
 	string MaxRate_Expo_tmp;
 	ReadParameter(port_index, MaxRate_Expo_tmp);
 	MaxRate_Expo_tmp = std::regex_replace(MaxRate_Expo_tmp, std::regex("[^0-9\r\n,]"), std::string(""));
-	split_tmp = split(MaxRate_Expo_tmp, string("\r\n"));
+	vector<string> split_tmp = split(MaxRate_Expo_tmp, string("\r\n"));
 	for (size_t i = 0; i < split_tmp.size(); ++i) {
 		if (split_tmp[i] == "") {
 			split_tmp.erase(split_tmp.begin() + i);
@@ -325,62 +347,37 @@ CameraParameters ImageCaptureBoard::GetCameraParameter(size_t port_index)
 	result.m_ImageMaxRate = split_tmp[0];
 	// m_ImageMaxExposureTime;
 	result.m_ImageMaxExposureTime = split_tmp[1];
-
-	//m_CameraLinkFrequency
-	WriteParameter(port_index, string("#c\r"));
-	string CameraLinkFrequency_tmp;
-	ReadParameter(port_index, CameraLinkFrequency_tmp);
-	CameraLinkFrequency_tmp = std::regex_replace(CameraLinkFrequency_tmp, std::regex("[^0-9]"), std::string(""));
-	if (CameraLinkFrequency_tmp == "0")
-	{
-		result.m_CameraLinkFrequency = "66";
-	}
-	else if (CameraLinkFrequency_tmp == "1")
-	{
-		result.m_CameraLinkFrequency = "75";
-	}
-	else if (CameraLinkFrequency_tmp == "2")
-	{
-		result.m_CameraLinkFrequency = "85";
-	}
 	return result;
 }
 
 bool ImageCaptureBoard::command_SetBase_2_8_bits(size_t port_index)
 {
-	Sleep(100);
 	return WriteParameter(port_index, std::string("#C(0)\r"));
 }
 
 bool ImageCaptureBoard::command_SetBase_2_10_bits(size_t port_index)
 {
-	Sleep(100);
 	return WriteParameter(port_index, std::string("#C(1)\r"));
 }
 
 bool ImageCaptureBoard::command_SetExternSynchro(size_t port_index)
 {
-	Sleep(100);
 	return WriteParameter(port_index, std::string("#S(1)\r"));
 }
 
 bool ImageCaptureBoard::command_SetInternSynchro(size_t port_index)
 {
-	Sleep(100);
 	return WriteParameter(port_index, std::string("#S(0)\r"));
 }
 
 bool ImageCaptureBoard::command_SetPositiveEdge(size_t port_index)
-{
-	Sleep(100);
-	if (WriteParameter(port_index, std::string("#P(1)\r")) && WriteParameter(port_index, std::string("#m(1)\r")))
+{	if (WriteParameter(port_index, std::string("#P(1)\r")) && WriteParameter(port_index, std::string("#m(1)\r")))
 		return true;
 	else return false;
 }
 
 bool ImageCaptureBoard::command_SetPositiveLevel(size_t port_index)
 {
-	Sleep(100);
 	if (WriteParameter(port_index, std::string("#P(1)\r")) && WriteParameter(port_index, std::string("#m(0)\r")))
 		return true;
 	else return false;
@@ -388,7 +385,6 @@ bool ImageCaptureBoard::command_SetPositiveLevel(size_t port_index)
 
 bool ImageCaptureBoard::command_SetNegativeEdge(size_t port_index)
 {
-	Sleep(100);
 	if (WriteParameter(port_index, std::string("#P(0)\r")) && WriteParameter(port_index, std::string("#m(1)\r")))
 		return true;
 	else return false;
@@ -396,7 +392,6 @@ bool ImageCaptureBoard::command_SetNegativeEdge(size_t port_index)
 
 bool ImageCaptureBoard::command_SetNegativeLevel(size_t port_index)
 {
-	Sleep(100);
 	if (WriteParameter(port_index, std::string("#P(0)\r")) && WriteParameter(port_index, std::string("#m(0)\r")))
 		return true;
 	else return false;
@@ -404,66 +399,112 @@ bool ImageCaptureBoard::command_SetNegativeLevel(size_t port_index)
 
 bool ImageCaptureBoard::command_SetFrameFormat(size_t port_index, size_t img_width, size_t img_height)
 {
-	Sleep(100);
 	std::string text_tmp = std::string("#R(") + std::to_string(img_width) + std::string(",") + std::to_string(img_height) + std::string(")\r");
 	return WriteParameter(port_index, text_tmp);
 }
 
 bool ImageCaptureBoard::command_SetExposure(size_t port_index, size_t exposure)
 {
-	Sleep(100);
 	std::string text_tmp = std::string("#e(") + std::to_string(exposure) + std::string(")\r");
 	return WriteParameter(port_index, text_tmp);
 }
 
 bool ImageCaptureBoard::command_SetFrameRate(size_t port_index, size_t frame_rate)
 {
-	Sleep(100);
 	std::string text_tmp = std::string("#r(") + std::to_string(frame_rate) + std::string(")\r");
 	return WriteParameter(port_index, text_tmp);
 }
 
 bool ImageCaptureBoard::command_SetCameraLinkFrequency(size_t port_index, size_t frequency)
 {
-	Sleep(100);
 	std::string text_tmp = std::string("#c(") + std::to_string(frequency) + std::string(")\r");
 	return WriteParameter(port_index, text_tmp);
 } 
 
+CameraParameters Base_ImageContrler::SetCameraParameter(const CameraParameters& para)
+{
+	//clmode
+	if (para.m_CLMode != m_CameraParameters.m_CLMode)
+	{
+		if (para.m_CLMode == std::string("0"))
+		{
+			m_ImgCaptureBoard_ptr->command_SetBase_2_8_bits(m_apc_data.dmaIndex);
+		}
+		else if (para.m_CLMode == std::string("1"))
+		{
+			m_ImgCaptureBoard_ptr->command_SetBase_2_10_bits(m_apc_data.dmaIndex);
+		}
+	}
+	//Synchro
+	if (para.m_Synchro != m_CameraParameters.m_Synchro)
+	{
+		if (para.m_Synchro == std::string("0"))
+		{
+			m_ImgCaptureBoard_ptr->command_SetInternSynchro(m_apc_data.dmaIndex);
+		}
+		else if (para.m_Synchro == std::string("1"))
+		{
+			m_ImgCaptureBoard_ptr->command_SetExternSynchro(m_apc_data.dmaIndex);
+		}
+	}
+	//Polarity
+	if (para.m_Polarity != m_CameraParameters.m_Polarity)
+	{
+		if (para.m_Polarity == std::string("00"))
+		{
+			m_ImgCaptureBoard_ptr->command_SetNegativeLevel(m_apc_data.dmaIndex);
+		}
+		else if (para.m_Polarity == std::string("01"))
+		{
+			m_ImgCaptureBoard_ptr->command_SetNegativeEdge(m_apc_data.dmaIndex);
+		}
+		else if (para.m_Polarity == std::string("10"))
+		{
+			m_ImgCaptureBoard_ptr->command_SetPositiveLevel(m_apc_data.dmaIndex);
+		}
+		else if (para.m_Polarity == std::string("11"))
+		{
+			m_ImgCaptureBoard_ptr->command_SetPositiveEdge(m_apc_data.dmaIndex);
+		}
+	}
+	//FrameFormat
+	if (para.m_ImageHeight != m_CameraParameters.m_ImageHeight || para.m_ImageWidth != m_CameraParameters.m_ImageWidth)
+	{
+		m_ImgCaptureBoard_ptr->command_SetFrameFormat(m_apc_data.dmaIndex, std::atoi(para.m_ImageWidth.c_str()), std::atoi(para.m_ImageHeight.c_str()));
+	}
+	//Exposure
+	if (para.m_ExposureTime != m_CameraParameters.m_ExposureTime)
+	{
+		m_ImgCaptureBoard_ptr->command_SetExposure(m_apc_data.dmaIndex, std::atoi(para.m_ExposureTime.c_str()));
+	}
+	//FrameRate
+	if (para.m_FrameFrequency != m_CameraParameters.m_FrameFrequency)
+	{
+		m_ImgCaptureBoard_ptr->command_SetFrameRate(m_apc_data.dmaIndex, std::atoi(para.m_FrameFrequency.c_str()));
+	}
+	//CameraLinkFrequency
+	if (para.m_CameraLinkFrequency != m_CameraParameters.m_CameraLinkFrequency)
+	{
+		m_ImgCaptureBoard_ptr->command_SetCameraLinkFrequency(m_apc_data.dmaIndex, std::atoi(para.m_CameraLinkFrequency.c_str()));
+	}
+	Sleep(50);
+	m_CameraParameters = m_ImgCaptureBoard_ptr->GetCameraParameter(m_apc_data.dmaIndex);
+	return m_CameraParameters;
+}
+
 Base_ImageContrler::Base_ImageContrler(ImageCaptureBoard &img_cap_board, size_t port_index)
 {
-	//查询实时参数
-	size_t m_Format = -1;
-	Fg_getParameter(img_cap_board.m_FrameGraber_Ptr, FG_FORMAT, &m_Format, port_index);
-	CameraParameters para_tmp = img_cap_board.GetCameraParameter(port_index);
-	//部分初始化成员
 	m_BufferAmount = 125;
-	m_ImageWidth = atoi(para_tmp.m_ImageWidth.c_str());
-	m_ImageHeight = atoi(para_tmp.m_ImageHeight.c_str());
-	m_FramFrequency = atoi(para_tmp.m_ImageRate.c_str());
 	m_Is_registered = false;
-	m_bytesPerPixel = 1;
-	switch (m_Format)
-	{
-	case FG_GRAY:	m_bytesPerPixel = 1; break;
-	case FG_GRAY16:	m_bytesPerPixel = 2; break;
-	case FG_COL24:	m_bytesPerPixel = 3; break;
-	case FG_COL32:	m_bytesPerPixel = 4; break;
-	case FG_COL30:	m_bytesPerPixel = 5; break;
-	case FG_COL48:	m_bytesPerPixel = 6; break;
-	}
-
+	m_ImageFormat = 0;
+	m_BytesPerPixel = 0;
+	m_ImgCaptureBoard_ptr = &img_cap_board;
 	m_apc_data.dmaIndex = port_index;
 	m_apc_data.fg = img_cap_board.m_FrameGraber_Ptr;
 	m_apc_data.mem = nullptr;
 	m_apc_data.m_ImageContrler = this;
-
-	// Memory allocation
-	size_t totalBufSize = m_ImageWidth * m_ImageHeight * m_BufferAmount * m_bytesPerPixel;
-	dma_mem *pMem = Fg_AllocMemEx(m_apc_data.fg, totalBufSize, m_BufferAmount);
-	//auto tmp = Fg_getLastErrorDescription(m_apc_data.fg);
-	if (pMem == nullptr) return ;
-	m_apc_data.mem = pMem;
+	m_CameraParameters = img_cap_board.GetCameraParameter(port_index);
+	m_MaxExposure_FPS = img_cap_board.GetCameraMaxExposureTime_MaxFPS(port_index);
 }
 
 Base_ImageContrler::~Base_ImageContrler()
@@ -481,10 +522,25 @@ Base_ImageContrler::~Base_ImageContrler()
 int Base_ImageContrler::Regist()
 {
 	//返回状态说明：1：正常  -1:申请内存失败 -2:注册失败  
-	if (m_apc_data.mem == nullptr) return -1;
-	//register
 	if (!m_Is_registered)
 	{
+		Fg_getParameter(m_apc_data.fg, FG_FORMAT, &m_ImageFormat, m_apc_data.dmaIndex);
+		switch (m_ImageFormat)
+		{
+		case FG_GRAY:	m_BytesPerPixel = 1; break;
+		case FG_GRAY16:	m_BytesPerPixel = 2; break;
+		case FG_COL24:	m_BytesPerPixel = 3; break;
+		case FG_COL32:	m_BytesPerPixel = 4; break;
+		case FG_COL30:	m_BytesPerPixel = 5; break;
+		case FG_COL48:	m_BytesPerPixel = 6; break;
+		}
+		// Memory allocation
+		size_t totalBufSize = std::atoi(m_CameraParameters.m_ImageWidth.c_str()) 
+							* std::atoi(m_CameraParameters.m_ImageHeight.c_str())  * m_BufferAmount * m_BytesPerPixel;
+		dma_mem *pMem = Fg_AllocMemEx(m_apc_data.fg, totalBufSize, m_BufferAmount);
+		if (pMem == nullptr) return -1;
+		m_apc_data.mem = pMem;
+		//regist
 		struct FgApcControl ctrl;
 		ctrl.version = 0;
 		ctrl.data = &m_apc_data;
@@ -503,11 +559,11 @@ int Base_ImageContrler::Regist()
 int Base_ImageContrler::Run_Acquire(size_t acquire_count)
 {
 	//返回状态说明：1：正常  -1:未注册  -3:Acquire失败 
-	//acquire_count:捕获的张数，默认为0，即连续捕捉
+	//acquire_count:捕获的张数，默认为0(即连续捕捉)
 	if (!m_Is_registered) return -1;
 	if (acquire_count == 0)
 	{
-		if ((Fg_AcquireEx(m_apc_data.fg, m_apc_data.dmaIndex, GRAB_INFINITE, ACQ_STANDARD, m_apc_data.mem)) < 0) 
+		if (Fg_AcquireEx(m_apc_data.fg, m_apc_data.dmaIndex, GRAB_INFINITE, ACQ_STANDARD, m_apc_data.mem) <0)
 		{
 			return -3;
 		}
@@ -519,13 +575,6 @@ int Base_ImageContrler::Run_Acquire(size_t acquire_count)
 			return -3;
 		}
 	}
-	return 1;
-}
-
-int Base_ImageContrler::Pause_Acquire()
-{
-	//返回状态说明：1：正常
-	Fg_stopAcquireEx(m_apc_data.fg, m_apc_data.dmaIndex, m_apc_data.mem, 0);
 	return 1;
 }
 
@@ -547,6 +596,6 @@ extern "C" int CallBackFunc(frameindex_t picNr, fg_apc_data *apcdata)
 	void *data = Fg_getImagePtrEx(apcdata->fg, picNr, apcdata->dmaIndex, apcdata->mem);
 	size_t img_len;
 	Fg_getParameterEx(apcdata->fg, FG_TRANSFER_LEN, &img_len, apcdata->dmaIndex, apcdata->mem, picNr);
-	apcdata->m_ImageContrler->HowToProcessImages(data, picNr, img_len);
+	apcdata->m_ImageContrler->HowToProcessImages(data, img_len);
 	return 0;
 }

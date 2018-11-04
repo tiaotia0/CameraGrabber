@@ -18,6 +18,7 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMainWindow>
+#include <QtWidgets/QMdiArea>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QToolBar>
@@ -31,10 +32,7 @@ class Ui_MainWindow
 public:
     QWidget *centralWidget;
     QPushButton *load;
-    QLabel *display_1;
-    QLabel *display_2;
-    QPushButton *start;
-    QPushButton *pause;
+    QPushButton *play;
     QPushButton *stop;
     QPushButton *record;
     QWidget *layoutWidget;
@@ -48,9 +46,10 @@ public:
     QLineEdit *status_2;
     QPushButton *set_2;
     QPushButton *recover;
-    QPushButton *pushButton;
     QTreeWidget *parameter_1;
     QTreeWidget *parameter_2;
+    QMdiArea *mdiArea_1;
+    QMdiArea *mdiArea_2;
     QToolBar *mainToolBar;
     QMenuBar *menuBar;
 
@@ -64,18 +63,9 @@ public:
         load = new QPushButton(centralWidget);
         load->setObjectName(QStringLiteral("load"));
         load->setGeometry(QRect(20, 10, 80, 20));
-        display_1 = new QLabel(centralWidget);
-        display_1->setObjectName(QStringLiteral("display_1"));
-        display_1->setGeometry(QRect(310, 60, 411, 241));
-        display_2 = new QLabel(centralWidget);
-        display_2->setObjectName(QStringLiteral("display_2"));
-        display_2->setGeometry(QRect(310, 310, 411, 251));
-        start = new QPushButton(centralWidget);
-        start->setObjectName(QStringLiteral("start"));
-        start->setGeometry(QRect(130, 10, 80, 20));
-        pause = new QPushButton(centralWidget);
-        pause->setObjectName(QStringLiteral("pause"));
-        pause->setGeometry(QRect(230, 10, 80, 20));
+        play = new QPushButton(centralWidget);
+        play->setObjectName(QStringLiteral("play"));
+        play->setGeometry(QRect(130, 10, 80, 20));
         stop = new QPushButton(centralWidget);
         stop->setObjectName(QStringLiteral("stop"));
         stop->setGeometry(QRect(330, 10, 80, 20));
@@ -133,9 +123,6 @@ public:
         recover = new QPushButton(centralWidget);
         recover->setObjectName(QStringLiteral("recover"));
         recover->setGeometry(QRect(540, 10, 80, 20));
-        pushButton = new QPushButton(centralWidget);
-        pushButton->setObjectName(QStringLiteral("pushButton"));
-        pushButton->setGeometry(QRect(640, 10, 80, 20));
         parameter_1 = new QTreeWidget(centralWidget);
         new QTreeWidgetItem(parameter_1);
         new QTreeWidgetItem(parameter_1);
@@ -168,6 +155,19 @@ public:
         parameter_2->setIndentation(10);
         parameter_2->setColumnCount(2);
         parameter_2->header()->setDefaultSectionSize(120);
+        mdiArea_1 = new QMdiArea(centralWidget);
+        mdiArea_1->setObjectName(QStringLiteral("mdiArea_1"));
+        mdiArea_1->setGeometry(QRect(290, 60, 400, 231));
+        QSizePolicy sizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        sizePolicy.setHorizontalStretch(0);
+        sizePolicy.setVerticalStretch(0);
+        sizePolicy.setHeightForWidth(mdiArea_1->sizePolicy().hasHeightForWidth());
+        mdiArea_1->setSizePolicy(sizePolicy);
+        mdiArea_2 = new QMdiArea(centralWidget);
+        mdiArea_2->setObjectName(QStringLiteral("mdiArea_2"));
+        mdiArea_2->setGeometry(QRect(290, 320, 400, 231));
+        sizePolicy.setHeightForWidth(mdiArea_2->sizePolicy().hasHeightForWidth());
+        mdiArea_2->setSizePolicy(sizePolicy);
         MainWindow->setCentralWidget(centralWidget);
         mainToolBar = new QToolBar(MainWindow);
         mainToolBar->setObjectName(QStringLiteral("mainToolBar"));
@@ -186,10 +186,7 @@ public:
     {
         MainWindow->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", Q_NULLPTR));
         load->setText(QApplication::translate("MainWindow", "Load", Q_NULLPTR));
-        display_1->setText(QApplication::translate("MainWindow", "TextLabel", Q_NULLPTR));
-        display_2->setText(QApplication::translate("MainWindow", "TextLabel", Q_NULLPTR));
-        start->setText(QApplication::translate("MainWindow", "Start", Q_NULLPTR));
-        pause->setText(QApplication::translate("MainWindow", "Pause", Q_NULLPTR));
+        play->setText(QApplication::translate("MainWindow", "Start", Q_NULLPTR));
         stop->setText(QApplication::translate("MainWindow", "Stop", Q_NULLPTR));
         record->setText(QApplication::translate("MainWindow", "Record", Q_NULLPTR));
         label->setText(QApplication::translate("MainWindow", "Camera_1", Q_NULLPTR));
@@ -199,7 +196,6 @@ public:
         status_2->setText(QApplication::translate("MainWindow", "Disconnected", Q_NULLPTR));
         set_2->setText(QApplication::translate("MainWindow", "Set", Q_NULLPTR));
         recover->setText(QApplication::translate("MainWindow", "Recover", Q_NULLPTR));
-        pushButton->setText(QApplication::translate("MainWindow", "Calibration", Q_NULLPTR));
         QTreeWidgetItem *___qtreewidgetitem = parameter_1->headerItem();
         ___qtreewidgetitem->setText(1, QApplication::translate("MainWindow", "Value", Q_NULLPTR));
         ___qtreewidgetitem->setText(0, QApplication::translate("MainWindow", "Parameter", Q_NULLPTR));
