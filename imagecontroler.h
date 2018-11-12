@@ -8,16 +8,11 @@
 #include <QVector>
 #include <memory>
 
-class BufferToQImage {
+class Gray8bitQImageCorlorTable {
 public:
-	BufferToQImage();
-	~BufferToQImage();
-	QImage Pk8bitGrayToQIm(const BYTE *pBuffer, const int bufWidth, const int bufHight);
-
-private:
 	static QVector<QRgb> vcolorTable;
-	static bool is_vcolorTable_constructed;
-
+	static bool IsConstructed;
+	const QVector<QRgb>& GetGray8bitQImageCorlorTable();
 };
 
 class ImageDisplayControler : public QObject, public Base_ImageContrler

@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "ui_displaywindow.h"
-//#include "calibrationdialog.h"
+#include "calibrationdialog.h"
+#include <direct.h>
 
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
@@ -17,13 +17,11 @@ MainWindow::MainWindow(QWidget *parent) :
     clmode_box_2 = new QComboBox;
     clfrequency_box_2 = new QComboBox;
 
-	parameterTree = { ui->parameter_1, ui->parameter_2 };
 	synchro_vec = { this->synchro_box_1, this->synchro_box_2 };
 	polarity_vec = { this->polarity_box_1, this->polarity_box_2 };
 	clmode_vec = { this->clmode_box_1, this->clmode_box_2 };
 	clfrequency_vec = { this->clfrequency_box_1, this->clfrequency_box_2 };
 	set_vec = { ui->set_1, ui->set_2 };
-	status = { ui->status_1, ui->status_2 };
 
 	for (size_t i = 0; i <= 1; i++) {
 		synchro_vec[i]->addItem("Intern");
@@ -39,13 +37,40 @@ MainWindow::MainWindow(QWidget *parent) :
 		clfrequency_vec[i]->addItem("85MHz");
 	}
 
-    connect(ui->parameter_1,SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(openEditor_1(QTreeWidgetItem*, int)));
-    connect(ui->parameter_1,SIGNAL(itemSelectionChanged()), this, SLOT(closeEditor_1()));
-	connect(ui->parameter_2, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(openEditor_2(QTreeWidgetItem*, int)));
-	connect(ui->parameter_2, SIGNAL(itemSelectionChanged()), this, SLOT(closeEditor_2()));
+    connect(ui->parameter_tree,SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(openEditor(QTreeWidgetItem*, int)));
+    connect(ui->parameter_tree,SIGNAL(itemSelectionChanged()), this, SLOT(closeEditor()));
 
-    ui->parameter_1->setStyleSheet("QTreeWidget::item{height:25px}");
-    ui->parameter_2->setStyleSheet("QTreeWidget::item{height:25px}");
+    ui->parameter_tree->setStyleSheet("QTreeWidget::item{height:30px}");
+
+	ui->set_1->setStyleSheet("background-color:transparent");
+	ui->set_2->setStyleSheet("background-color:transparent");
+
+	ui->parameter_tree->setItemWidget(ui->parameter_tree->topLevelItem(0), 10, ui->set_1);
+	ui->parameter_tree->setItemWidget(ui->parameter_tree->topLevelItem(1), 10, ui->set_2);
+
+	status_1 = new QPushButton;
+	status_2 = new QPushButton;
+	status_1->setText("Port A");
+	status_2->setText("Port B");
+	this->status_1->setStyleSheet("background-color:red");
+	this->status_2->setStyleSheet("background-color:red");
+	ui->parameter_tree->setItemWidget(ui->parameter_tree->topLevelItem(0), 1, this->status_1);
+	ui->parameter_tree->setItemWidget(ui->parameter_tree->topLevelItem(1), 1, this->status_2);
+
+	QHeaderView *head = ui->parameter_tree->header();
+	head->setSectionResizeMode(QHeaderView::ResizeToContents);
+
+	ui->displaywindow_1->setScaledContents(true);
+	ui->displaywindow_2->setScaledContents(true);
+
+	ui->actionLoad->setDisabled(false);
+	ui->actionPlay->setDisabled(true);
+	ui->actionSetImagePath->setDisabled(true);
+	ui->actionRecord->setDisabled(true);
+	ui->actionStop->setDisabled(true);
+	ui->actionCalibrate->setDisabled(true);
+	ui->actionSetCalibPath->setDisabled(true);
+	ui->actioncalib_capture->setDisabled(true);
 }
 
 MainWindow::~MainWindow()
@@ -55,112 +80,37 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_load_clicked()
-{
-	if (sysboards!=nullptr)
-	{
-		for (size_t i = 0; i < display_window_ptr_vec.size(); i++)
-		{
-			QObject::disconnect(display_window_ptr_vec[i], SLOT(freshWindow(QImage)));
-		}
-		for (auto &item : display_window_ptr_vec)
-		{
-			delete item;
-		}
-		for (auto &item : image_control_ptr_vec)
-		{
-			delete item;
-		}
-		delete sysboards;
-		sysboards = nullptr;
-	}
-	sysboards = new SystemImageCaptureBoards;
-	sysboards->InitialSystemImageCaptureBoards();
-	//默认取第一块采集卡，当有多张采集卡时再更改
-	if (sysboards->GetBoardsAmount() > 0)
-	{
-		first_board_ptr = &(sysboards->GetImageCaptureBoardRefbyIndex(0));
-	}
-	first_board_ptr->RefreshPortConnectStatus();
-	auto CameraConnectStatus = first_board_ptr->GetCameraConnectStatus();
-    for (size_t i = 0; i < first_board_ptr->GetBoardPortAmount(); i++)
-    {
-		if (!CameraConnectStatus[i])
-		{
-			status[i]->setText("disConnected");
-			set_vec[i]->setEnabled(false);
-			parameterTree[i]->setEnabled(false);
-			continue;
-		}
-        status[i]->setText("Connected");
-		set_vec[i]->setEnabled(true);
-		parameterTree[i]->setEnabled(true);
-    }
-	image_control_ptr_vec = std::vector<Base_ImageContrler*>(first_board_ptr->GetBoardPortAmount(), nullptr);
-	display_window_ptr_vec = std::vector<DisplayWindow *>(first_board_ptr->GetBoardPortAmount(), nullptr);
-	for (size_t i = 0; i < CameraConnectStatus.size(); i++)
-	{
-		if (CameraConnectStatus[i] && display_window_ptr_vec[i] == nullptr)
-		{
-			auto tmp_ptr = new DisplayWindow();
-			display_window_ptr_vec[i] = tmp_ptr;
-			if (i == 0)
-			{
-				ui->mdiArea_1->addSubWindow(tmp_ptr);
-				tmp_ptr->show();
-				ui->mdiArea_1->activeSubWindow();
-			}
-			else
-			{
-				ui->mdiArea_2->addSubWindow(tmp_ptr);
-				tmp_ptr->show();
-				ui->mdiArea_2->activeSubWindow();
-			}
-		}
-	}
-	for (size_t i = 0; i < CameraConnectStatus.size(); i++)
-	{
-		if (CameraConnectStatus[i] && image_control_ptr_vec[i] == nullptr)
-		{
-			auto tmp_ptr = new ImageDisplayControler(*first_board_ptr, i);
-			image_control_ptr_vec[i] = tmp_ptr;
-			connect(tmp_ptr, SIGNAL(sendImage(QImage)), display_window_ptr_vec[i], SLOT(freshWindow(QImage)));
-			showParameters(i);
-		}
-	}
-}
-
 void MainWindow::showParameters(size_t i)
 {
 	Base_ImageContrler *img_ctrl_ptr = image_control_ptr_vec[i];
     auto para = img_ctrl_ptr->GetCameraParameter();
-    parameterTree[i]->topLevelItem(0)->setText(1, QString::fromStdString(para.m_ImageWidth));
-    parameterTree[i]->topLevelItem(1)->setText(1, QString::fromStdString(para.m_ImageHeight));
-    parameterTree[i]->topLevelItem(2)->setText(1, QString::fromStdString(para.m_FrameFrequency));
-    parameterTree[i]->topLevelItem(3)->setText(1, QString::fromStdString(para.m_ExposureTime));
+    ui->parameter_tree->topLevelItem(i)->setText(2, QString::fromStdString(para.m_ImageWidth));
+    ui->parameter_tree->topLevelItem(i)->setText(3, QString::fromStdString(para.m_ImageHeight));
+    ui->parameter_tree->topLevelItem(i)->setText(4, QString::fromStdString(para.m_FrameFrequency));
+    ui->parameter_tree->topLevelItem(i)->setText(5, QString::fromStdString(para.m_ExposureTime));
 
-    parameterTree[i]->setItemWidget(parameterTree[i]->topLevelItem(4), 1, synchro_vec[i]);
-    parameterTree[i]->setItemWidget(parameterTree[i]->topLevelItem(5), 1, polarity_vec[i]);
-    parameterTree[i]->setItemWidget(parameterTree[i]->topLevelItem(6), 1, clmode_vec[i]);
-    parameterTree[i]->setItemWidget(parameterTree[i]->topLevelItem(7), 1, clfrequency_vec[i]);
+    ui->parameter_tree->setItemWidget(ui->parameter_tree->topLevelItem(i), 6, synchro_vec[i]);
+    ui->parameter_tree->setItemWidget(ui->parameter_tree->topLevelItem(i), 7, polarity_vec[i]);
+    ui->parameter_tree->setItemWidget(ui->parameter_tree->topLevelItem(i), 8, clmode_vec[i]);
+    ui->parameter_tree->setItemWidget(ui->parameter_tree->topLevelItem(i), 9, clfrequency_vec[i]);
 
     synchro_vec[i]->setCurrentText(QString::fromStdString(para.m_Synchro));
     polarity_vec[i]->setCurrentText(QString::fromStdString(para.m_Polarity));
     clmode_vec[i]->setCurrentText(QString::fromStdString(para.m_CLMode));
     clfrequency_vec[i]->setCurrentText(QString::fromStdString(para.m_CameraLinkFrequency));
 
-    parameterTree[i]->topLevelItem(4)->setText(1, QString::fromStdString(para.m_Synchro));
-    parameterTree[i]->topLevelItem(5)->setText(1, QString::fromStdString(para.m_Polarity));
-    parameterTree[i]->topLevelItem(6)->setText(1, QString::fromStdString(para.m_CLMode));
-    parameterTree[i]->topLevelItem(7)->setText(1, QString::fromStdString(para.m_CameraLinkFrequency));
+    ui->parameter_tree->topLevelItem(i)->setText(6, QString::fromStdString(para.m_Synchro));
+    ui->parameter_tree->topLevelItem(i)->setText(7, QString::fromStdString(para.m_Polarity));
+    ui->parameter_tree->topLevelItem(i)->setText(8, QString::fromStdString(para.m_CLMode));
+    ui->parameter_tree->topLevelItem(i)->setText(9, QString::fromStdString(para.m_CameraLinkFrequency));
 }
 
 void MainWindow::setParameters(size_t k)
 {
-	QString width = parameterTree[k]->topLevelItem(0)->text(1);
-	QString height = parameterTree[k]->topLevelItem(1)->text(1);
-	QString frameRate = parameterTree[k]->topLevelItem(2)->text(1);
-	QString exposure = parameterTree[k]->topLevelItem(3)->text(1);
+    QString width = ui->parameter_tree->topLevelItem(k)->text(2);
+    QString height = ui->parameter_tree->topLevelItem(k)->text(3);
+    QString frameRate = ui->parameter_tree->topLevelItem(k)->text(4);
+    QString exposure = ui->parameter_tree->topLevelItem(k)->text(5);
 	QString synchro = synchro_vec[k]->currentText();
 	QString polarity = polarity_vec[k]->currentText();
 	QString clmode = clmode_vec[k]->currentText();
@@ -210,23 +160,119 @@ void MainWindow::setParameters(size_t k)
 
 void MainWindow::on_set_1_clicked()
 {
-    setParameters(0);
+	setParameters(0);
 }
 
 void MainWindow::on_set_2_clicked()
 {
-    setParameters(1);
+	setParameters(1);
 }
 
-void MainWindow::on_play_clicked()
+void MainWindow::on_actionCalibrate_triggered()
 {
-	//todo：开始之后变灰
-	for (auto & item: image_control_ptr_vec)
+	//显示标定对话框
+	CalibDialog* calibdialog = new CalibDialog;
+	calibdialog->show();
+}
+
+void MainWindow::openEditor(QTreeWidgetItem *item, int column)
+{
+	if (column == 2 || column == 3 || column == 4 || column == 5)
+    {
+        ui->parameter_tree->openPersistentEditor(item, column);
+        temItem = item;
+		temColumn = column;
+    }
+}
+
+void MainWindow::closeEditor()
+{
+	if (temItem != nullptr)
+    {
+        ui->parameter_tree->closePersistentEditor(temItem, temColumn);
+    }
+}
+
+void MainWindow::on_actionLoad_triggered()
+{
+    if (sysboards!=nullptr)
+    {
+        for (auto &item : image_control_ptr_vec)
+        {
+			if (item == nullptr) continue;
+            item->Stop_Acquire();
+        }
+        delete sysboards;
+        sysboards = nullptr;
+    }
+    sysboards = new SystemImageCaptureBoards;
+    sysboards->InitialSystemImageCaptureBoards();
+    //默认取第一块采集卡，当有多张采集卡时再更改
+    if (sysboards->GetBoardsAmount() > 0)
+    {
+        first_board_ptr = &(sysboards->GetImageCaptureBoardRefbyIndex(0));
+    }
+    first_board_ptr->RefreshPortConnectStatus();
+    auto CameraConnectStatus = first_board_ptr->GetCameraConnectStatus();
+    for (size_t i = 0; i < first_board_ptr->GetBoardPortAmount(); i++)
+    {
+        if (!CameraConnectStatus[i])
+        {
+            set_vec[i]->setEnabled(false);
+            continue;
+        }
+		if (i == 0)
+			this->status_1->setStyleSheet("background-color:green");
+		else
+			this->status_2->setStyleSheet("background-color:green");
+        set_vec[i]->setEnabled(true);
+    }
+    image_control_ptr_vec = std::vector<Base_ImageContrler*>(first_board_ptr->GetBoardPortAmount(), nullptr);
+    for (size_t i = 0; i < CameraConnectStatus.size(); i++)
+    {
+        if (CameraConnectStatus[i] && image_control_ptr_vec[i] == nullptr)
+        {
+            auto tmp_ptr = new ImageDisplayControler(*first_board_ptr, i);
+            image_control_ptr_vec[i] = tmp_ptr;
+			if (i == 0)
+				connect(tmp_ptr, SIGNAL(sendImage(QImage)), this, SLOT(showImage_1(QImage)));
+			else 
+				connect(tmp_ptr, SIGNAL(sendImage(QImage)), this, SLOT(showImage_2(QImage)));
+
+            showParameters(i);
+			tmp_ptr->FreshCameraParametersToImageCaptureBoard();
+        }
+    }
+	ui->actionLoad->setDisabled(false);
+	ui->actionPlay->setDisabled(false);
+}
+
+void MainWindow::showImage_1(QImage qImg)
+{
+	ui->displaywindow_1->setPixmap(QPixmap::fromImage(qImg));
+}
+
+void MainWindow::showImage_2(QImage qImg)
+{
+	ui->displaywindow_2->setPixmap(QPixmap::fromImage(qImg));
+}
+
+void MainWindow::on_actionPlay_triggered()
+{
+	ui->actionPlay->setDisabled(true);
+	ui->actionSetImagePath->setDisabled(false);
+	ui->actionStop->setDisabled(false);
+	ui->actionCalibrate->setDisabled(false);
+    for (auto & item: image_control_ptr_vec)
+    {
+        if (item == nullptr) continue;
+        item->Regist();
+    }
+	for (auto & item : image_control_ptr_vec)
 	{
 		if (item == nullptr) continue;
-		item->Regist();
+		item->is_playing = true;
 	}
-	
     for (auto item : image_control_ptr_vec)
     {
         if (item == nullptr) continue;
@@ -234,79 +280,76 @@ void MainWindow::on_play_clicked()
     }
 }
 
-void MainWindow::on_record_clicked()
+void MainWindow::on_actionSetImagePath_triggered()
 {
-	for (auto &item : image_control_ptr_vec)
+    QString fileName = QFileDialog::getExistingDirectory(this, "Save Image Path");
+    if (!fileName.isNull())
+    {
+		//创建目录
+		std::string tmp_path = fileName.toStdString();
+		tmp_path=std::regex_replace(tmp_path, std::regex("/"), std::string("\\"));
+		savefolder = tmp_path;
+    }
+	ui->actionRecord->setDisabled(false);
+}
+
+void MainWindow::on_actionRecord_triggered()
+{
+	ui->actionPlay->setDisabled(true);
+	ui->actionSetImagePath->setDisabled(true);
+	ui->actionRecord->setDisabled(true);
+	ui->actionStop->setDisabled(false);
+    for (int i=0;i<image_control_ptr_vec.size();i++)
+    {
+		if (image_control_ptr_vec[i] == nullptr) continue;
+		//获取时间以创建不同相机的保存目录
+		time_t t = time(0);
+		char tmp_time[64];
+		strftime(tmp_time, sizeof(tmp_time), "%Y%m%d%H%M", localtime(&t));
+		std::string tmp_path = savefolder + "\\" + std::string(tmp_time) + "Camera" + std::to_string(i + 1);
+		mkdir(tmp_path.c_str());
+
+		image_control_ptr_vec[i]->m_FilePathToSave = tmp_path;
+		image_control_ptr_vec[i]->picNr_toSave = 0;
+    }
+	for (int i = 0;i < image_control_ptr_vec.size();i++)
 	{
-		item->is_recording = true;
+		if (image_control_ptr_vec[i] == nullptr) continue;
+		image_control_ptr_vec[i]->is_recording = true;
 	}
 }
 
-void MainWindow::on_stop_clicked()
+void MainWindow::on_actionStop_triggered()
 {
-	//todo:未录制时为灰，录制后方可使用
+	ui->actionPlay->setDisabled(false);
+	ui->actionSetImagePath->setDisabled(true);
+	ui->actionRecord->setDisabled(true);
+	ui->actionStop->setDisabled(true);
+
+	for (auto & item : image_control_ptr_vec)
+	{
+		if (item == nullptr) continue;
+		item->is_playing = false;
+	}
     for (auto item : image_control_ptr_vec)
     {
-		if (item == nullptr) continue;
-		item->is_recording = false;
+        if (item == nullptr) continue;
+        item->is_recording = false;
         item->Stop_Acquire();
     }
 }
 
-//void MainWindow::on_calibration_clicked()
-//{
-//	//显示标定对话框
-//	CalibDialog* calibdialog = new CalibDialog;
-//	calibdialog->exec();
-//}
-
-void MainWindow::openEditor_1(QTreeWidgetItem *item, int column)
+void MainWindow::on_actionSetCalibPath_triggered()
 {
-    if (item == ui->parameter_1->topLevelItem(0) || item == ui->parameter_1->topLevelItem(1) || item == ui->parameter_1->topLevelItem(2) || item == ui->parameter_1->topLevelItem(3))
+    QString fileName = QFileDialog::getExistingDirectory(this, "Save Calibration Path");
+
+    if (!fileName.isNull())
     {
-        ui->parameter_1->openPersistentEditor(item, 1);
-        temItem = item;
+
     }
 }
 
-void MainWindow::closeEditor_1()
+void MainWindow::on_actionCalib_capture_triggered()
 {
-    if (temItem == ui->parameter_1->topLevelItem(0) || temItem == ui->parameter_1->topLevelItem(1) || temItem == ui->parameter_1->topLevelItem(2) || temItem == ui->parameter_1->topLevelItem(3))
-    {
-        ui->parameter_1->closePersistentEditor(temItem, 1);
-    }
-}
 
-void MainWindow::openEditor_2(QTreeWidgetItem *item, int column)
-{
-	if (item == ui->parameter_2->topLevelItem(0) || item == ui->parameter_2->topLevelItem(1) || item == ui->parameter_2->topLevelItem(2) || item == ui->parameter_2->topLevelItem(3))
-	{
-		ui->parameter_2->openPersistentEditor(item, 1);
-		temItem = item;
-	}
-}
-
-void MainWindow::closeEditor_2()
-{
-	if (temItem == ui->parameter_2->topLevelItem(0) || temItem == ui->parameter_2->topLevelItem(1) || temItem == ui->parameter_2->topLevelItem(2) || temItem == ui->parameter_2->topLevelItem(3))
-	{
-		ui->parameter_2->closePersistentEditor(temItem, 1);
-	}
-}
-
-DisplayWindow::DisplayWindow(QWidget *parent) :
-	QWidget(parent),
-	ui(new Ui::DisplayWindow)
-{
-	ui->setupUi(this);
-}
-
-DisplayWindow::~DisplayWindow()
-{
-	delete ui;
-}
-
-void DisplayWindow::freshWindow(QImage img)
-{
-	ui->display_label->setPixmap(QPixmap::fromImage(img));
 }

@@ -150,7 +150,7 @@
       <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>D:\Qt\Qt5.8.0\5.8\msvc2015\lib\qtmaind.lib;shell32.lib;.\lib\fglib5.lib;.\lib\clsersis.lib;D:\Qt\Qt5.8.0\5.8\msvc2015\lib\Qt5Widgetsd.lib;D:\Qt\Qt5.8.0\5.8\msvc2015\lib\Qt5Guid.lib;D:\Qt\Qt5.8.0\5.8\msvc2015\lib\Qt5Cored.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>D:\Qt\Qt5.8.0\5.8\msvc2015\lib\qtmaind.lib;shell32.lib;.\lib\fglib5.lib;.\lib\clsersis.lib;D:\Qt\Qt5.8.0\5.8\msvc2015\lib\Qt5Widgetsd.lib;D:\Qt\Qt5.8.0\5.8\msvc2015\lib\Qt5Guid.lib;D:\Qt\Qt5.8.0\5.8\msvc2015\lib\Qt5Cored.lib;opencv_world300d.lib;opencv_world300.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>D:\Qt\Qt5.8.0\5.8\msvc2015\lib;C:\utils\my_sql\my_sql\lib;C:\utils\postgresql\pgsql\lib;.\lib;D:\Qt\Qt5.8.0\5.8\msvc2015\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>"/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'" %(AdditionalOptions)</AdditionalOptions>
       <DataExecutionPrevention>true</DataExecutionPrevention>
@@ -188,6 +188,8 @@
     </QtMoc>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="calibrationdialog.cpp" />
+    <ClCompile Include="cv_calibration.cpp" />
     <ClCompile Include="imagecontroler.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mainwindow.cpp" />
@@ -204,10 +206,11 @@
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;D:\Qt\Qt5.8.0\5.8\msvc2015\mkspecs/$(Platform)-msvc2015;.;./include;D:\Qt\Qt5.8.0\5.8\msvc2015\include;D:\Qt\Qt5.8.0\5.8\msvc2015\include/QtWidgets;D:\Qt\Qt5.8.0\5.8\msvc2015\include/QtGui;D:\Qt\Qt5.8.0\5.8\msvc2015\include/QtANGLE;D:\Qt\Qt5.8.0\5.8\msvc2015\include/QtCore;d:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.15.26726\ATLMFC\include;d:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.15.26726\include;C:\Program Files (x86)\Windows Kits\NETFXSDK\4.6.1\include\um;D:\Windows Kits\10\include\10.0.17134.0\ucrt;D:\Windows Kits\10\include\10.0.17134.0\shared;D:\Windows Kits\10\include\10.0.17134.0\um;D:\Windows Kits\10\include\10.0.17134.0\winrt;D:\Windows Kits\10\include\10.0.17134.0\cppwinrt</IncludePath>
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;D:\Qt\Qt5.8.0\5.8\msvc2015\mkspecs/$(Platform)-msvc2015;.;./include;D:\Qt\Qt5.8.0\5.8\msvc2015\include;D:\Qt\Qt5.8.0\5.8\msvc2015\include/QtWidgets;D:\Qt\Qt5.8.0\5.8\msvc2015\include/QtGui;D:\Qt\Qt5.8.0\5.8\msvc2015\include/QtANGLE;D:\Qt\Qt5.8.0\5.8\msvc2015\include/QtCore;d:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.15.26726\ATLMFC\include;d:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.15.26726\include;C:\Program Files (x86)\Windows Kits\NETFXSDK\4.6.1\include\um;D:\Windows Kits\10\include\10.0.17134.0\ucrt;D:\Windows Kits\10\include\10.0.17134.0\shared;D:\Windows Kits\10\include\10.0.17134.0\um;D:\Windows Kits\10\include\10.0.17134.0\winrt;D:\Windows Kits\10\include\10.0.17134.0\cppwinrt</IncludePath>
     </QtMoc>
-    <ClInclude Include="calibrationdialog.h" />
+    <QtMoc Include="calibrationdialog.h" />
     <ClInclude Include="cv_calibration.h" />
-    <ClInclude Include="GeneratedFiles\ui_displaywindow.h" />
+    <ClInclude Include="GeneratedFiles\ui_calibrationdialog.h" />
     <ClInclude Include="GeneratedFiles\ui_mainwindow.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="siliconboard.h" />
   </ItemGroup>
   <ItemGroup>
@@ -243,9 +246,12 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <QtUic Include="displaywindow.ui" />
+    <QtUic Include="calibrationdialog.ui" />
     <QtUic Include="mainwindow.ui">
     </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="iconresource.qrc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

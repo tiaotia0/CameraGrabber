@@ -7,27 +7,14 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QWidget>
+#include <QFileDialog>
+#include <QPushButton>
 #include "siliconboard.h"
 #include "imagecontroler.h"
 
 namespace Ui {
-	class DisplayWindow;
 	class MainWindow;
 }
-class DisplayWindow : public QWidget
-{
-	Q_OBJECT
-
-public:
-	explicit DisplayWindow(QWidget *parent = 0);
-	~DisplayWindow();
-
-public slots:
-	void freshWindow(QImage);
-
-private:
-	Ui::DisplayWindow *ui;
-};
 
 class MainWindow : public QMainWindow
 {
@@ -38,23 +25,36 @@ public:
     ~MainWindow();
     void setParameters(size_t k);
     void showParameters(size_t i);
-    QTreeWidgetItem *temItem;
+    QTreeWidgetItem *temItem = nullptr;
     int temColumn;
 
 private slots:
-    void on_load_clicked();
     void on_set_1_clicked();
     void on_set_2_clicked();
 
-    void on_play_clicked();
-    void on_stop_clicked();
-	void on_record_clicked();
-	//void on_calibration_clicked();
 
-    void openEditor_1(QTreeWidgetItem *item, int column);
-    void closeEditor_1();
-	void openEditor_2(QTreeWidgetItem *item, int column);
-	void closeEditor_2();
+    void openEditor(QTreeWidgetItem *item, int column);
+    void closeEditor();
+
+    void on_actionLoad_triggered();
+
+    void on_actionPlay_triggered();
+
+    void on_actionSetImagePath_triggered();
+
+	void on_actionSetCalibPath_triggered();
+
+    void on_actionStop_triggered();
+
+    void on_actionRecord_triggered();
+
+	void on_actionCalibrate_triggered();
+
+	void on_actionCalib_capture_triggered();
+
+	void showImage_1(QImage qImg);
+	void showImage_2(QImage qImg);
+
 
 private:
     Ui::MainWindow *ui;
@@ -74,13 +74,13 @@ private:
     std::vector<QComboBox*> clfrequency_vec;
     std::vector<QLabel*> display_window;
 	std::vector<QPushButton*> set_vec;
-	std::vector<QLineEdit*> status;
 
+	std::string savefolder;
 	SystemImageCaptureBoards *sysboards = nullptr;
 	ImageCaptureBoard *first_board_ptr = nullptr;
 	std::vector<Base_ImageContrler*> image_control_ptr_vec;
-	std::vector<DisplayWindow *> display_window_ptr_vec;
-	//static bool is_recording;
+	QPushButton* status_1;
+	QPushButton* status_2;
 };
 
 #endif // MAINWINDOW_H

@@ -1,5 +1,4 @@
 #include "siliconboard.h"
-#include <iostream>
 size_t SystemImageCaptureBoards::DetectNrOfBoards()
 {
 	int nrOfBoards = 0;
@@ -487,14 +486,32 @@ CameraParameters Base_ImageContrler::SetCameraParameter(const CameraParameters& 
 	{
 		m_ImgCaptureBoard_ptr->command_SetCameraLinkFrequency(m_apc_data.dmaIndex, std::atoi(para.m_CameraLinkFrequency.c_str()));
 	}
-	Sleep(50);
+	Sleep(100);
 	m_CameraParameters = m_ImgCaptureBoard_ptr->GetCameraParameter(m_apc_data.dmaIndex);
+	FreshCameraParametersToImageCaptureBoard();
 	return m_CameraParameters;
+}
+
+void Base_ImageContrler::FreshCameraParametersToImageCaptureBoard()
+{
+	int camera_link_type_ = 108;
+	int triggermode = GRABBER_CONTROLLED;
+	Fg_setParameter(m_apc_data.fg, FG_TRIGGERMODE, &triggermode, m_apc_data.dmaIndex);
+	auto width_ = atoi(m_CameraParameters.m_ImageWidth.c_str());
+	auto heigh_ = atoi(m_CameraParameters.m_ImageHeight.c_str());
+	auto expo_ = atoi(m_CameraParameters.m_ExposureTime.c_str());
+	auto fps_ = atoi(m_CameraParameters.m_FrameFrequency.c_str());
+
+	auto a=Fg_setParameter(m_apc_data.fg, FG_WIDTH, &width_, m_apc_data.dmaIndex);
+	auto b=Fg_setParameter(m_apc_data.fg, FG_HEIGHT, &heigh_, m_apc_data.dmaIndex);
+	auto c=Fg_setParameter(m_apc_data.fg, FG_EXPOSURE, &expo_, m_apc_data.dmaIndex);
+	auto d=Fg_setParameter(m_apc_data.fg, FG_FRAMESPERSEC, &fps_, m_apc_data.dmaIndex);
+	auto e=Fg_setParameter(m_apc_data.fg, FG_CAMERA_LINK_CAMTYP, &camera_link_type_, m_apc_data.dmaIndex);
 }
 
 Base_ImageContrler::Base_ImageContrler(ImageCaptureBoard &img_cap_board, size_t port_index)
 {
-	m_BufferAmount = 125;
+	m_BufferAmount = 128;
 	m_Is_registered = false;
 	m_ImageFormat = 0;
 	m_BytesPerPixel = 0;

@@ -16,11 +16,10 @@ public:
 	~CalibDialog();
 
 private slots:
-	void on_next_clicked();
-	void on_finish_clicked();
+	void on_calibration_close_clicked();
 
 private:
 	Ui::CalibDialog *ui;
-}
+};
 #endif // !CALIBRATIONDIALOG_H
 

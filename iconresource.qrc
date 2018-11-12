@@ -1,0 +1,14 @@
+<RCC>
+    <qresource prefix="/new/iocn">
+        <file>resources/archive.ico</file>
+        <file>resources/bag.ico</file>
+        <file>resources/calibration.ico</file>
+        <file>resources/capture.ico</file>
+        <file>resources/load1.ico</file>
+        <file>resources/loading.ico</file>
+        <file>resources/play1.ico</file>
+        <file>resources/record1.ico</file>
+        <file>resources/stop1.ico</file>
+        <file>resources/upload_para1.ico</file>
+    </qresource>
+</RCC>

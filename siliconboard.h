@@ -120,12 +120,15 @@ private:
 	size_t m_BufferAmount;
 	bool m_Is_registered;
 	fg_apc_data m_apc_data;
+
 protected:
 	CameraParameters m_CameraParameters;
 	CameraMaxExposureTime_MaxFPS m_MaxExposure_FPS;
 public:
 	bool is_recording = false;
+	bool is_playing = false;
 	size_t picNr_toSave = 0;
+	std::string m_FilePathToSave;
 	virtual void HowToProcessImages(void *img_prt, size_t img_len) = 0;
 	int Regist();
 	int Run_Acquire(size_t acquire_count=0);
@@ -141,6 +144,7 @@ public:
 		return m_MaxExposure_FPS;
 	}
 	CameraParameters SetCameraParameter(const CameraParameters& para);
+	void FreshCameraParametersToImageCaptureBoard();
 
 	Base_ImageContrler(ImageCaptureBoard &img_cap_board, size_t port_index);
 	~Base_ImageContrler();

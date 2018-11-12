@@ -29,21 +29,73 @@ SOURCES += \
     siliconboard.cpp \
     buffertoqimage.cpp \
     cv_calibration.cpp \
-    imagedisplaycontroler.cpp
+    imagedisplaycontroler.cpp \
+    GeneratedFiles/Debug/moc_imagecontroler.cpp \
+    GeneratedFiles/Debug/moc_imagedisplaycontroler.cpp \
+    GeneratedFiles/Debug/moc_mainwindow.cpp \
+    GeneratedFiles/Release/moc_imagedisplaycontroler.cpp \
+    GeneratedFiles/Release/moc_mainwindow.cpp \
+    calibrationdialog.cpp \
+    demo.cpp \
+    imagecontroler.cpp \
+    selectboarddlg.cpp
 
 HEADERS += \
         mainwindow.h \
     siliconboard.h \
     buffertoqimage.h \
     cv_calibration.h \
-    imagedisplaycontroler.h
+    imagedisplaycontroler.h \
+    debug/moc_predefs.h \
+    GeneratedFiles/ui_displaywindow.h \
+    GeneratedFiles/ui_mainwindow.h \
+    include/clser.h \
+    include/fgrab_define.h \
+    include/fgrab_prototyp.h \
+    include/fgrab_struct.h \
+    include/gbe.h \
+    include/gbe_error.h \
+    include/os_funcs.h \
+    include/os_type.h \
+    include/siso_auxport.h \
+    include/siso_genicam.h \
+    include/siso_genicam_error.h \
+    include/sisoboards.h \
+    include/SisoDisplay.h \
+    include/sisoIo.h \
+    include/sisoIoBmpErrorCodes.h \
+    include/sisoIoFileErrorCodes.h \
+    include/sisoIoRawErrorCoedes.h \
+    include/sisoIoTiffErrorCodes.h \
+    release/moc_predefs.h \
+    calibrationdialog.h \
+    imagecontroler.h \
+    selectboarddlg.h
 
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+    calibrationdialog.ui \
+    displaywindow.ui
 
 INCLUDEPATH += $$PWD/include
 
 
 LIBS += -L$$PWD/lib/ -lfglib5
 LIBS += -L$$PWD/lib/ -lclsersis
+
+DISTFILES += \
+    resources/start.png \
+    resources/about.ico \
+    resources/close.ico \
+    resources/exit.ico \
+    resources/init.ico \
+    resources/load.ico \
+    resources/record.ico \
+    resources/save.ico \
+    resources/start.ico \
+    resources/stop.ico \
+    resources/upload.ico
+
+RESOURCES += \
+    iconresource.qrc
 

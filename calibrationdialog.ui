@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>610</width>
-    <height>438</height>
+    <height>331</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -39,41 +39,65 @@
     <string>TextLabel</string>
    </property>
   </widget>
-  <widget class="QTextEdit" name="textEdit">
+  <widget class="QPushButton" name="calibration_close">
    <property name="geometry">
     <rect>
-     <x>30</x>
+     <x>480</x>
+     <y>260</y>
+     <width>75</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Close</string>
+   </property>
+  </widget>
+  <widget class="QTreeWidget" name="calibration_tree">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
      <y>250</y>
-     <width>551</width>
-     <height>111</height>
+     <width>411</width>
+     <height>51</height>
     </rect>
    </property>
-  </widget>
-  <widget class="QPushButton" name="next">
-   <property name="geometry">
-    <rect>
-     <x>110</x>
-     <y>380</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
+   <property name="indentation">
+    <number>0</number>
    </property>
-   <property name="text">
-    <string>Next</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="finish">
-   <property name="geometry">
-    <rect>
-     <x>400</x>
-     <y>380</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Finish</string>
-   </property>
+   <column>
+    <property name="text">
+     <string/>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>Camera_1</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>Camera_2</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>Total Progress</string>
+    </property>
+   </column>
+   <item>
+    <property name="text">
+     <string>Calibration Status</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </item>
   </widget>
  </widget>
  <resources/>
