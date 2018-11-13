@@ -268,11 +268,6 @@ void MainWindow::on_actionPlay_triggered()
         if (item == nullptr) continue;
         item->Regist();
     }
-	for (auto & item : image_control_ptr_vec)
-	{
-		if (item == nullptr) continue;
-		item->is_playing = true;
-	}
     for (auto item : image_control_ptr_vec)
     {
         if (item == nullptr) continue;
@@ -326,11 +321,6 @@ void MainWindow::on_actionStop_triggered()
 	ui->actionRecord->setDisabled(true);
 	ui->actionStop->setDisabled(true);
 
-	for (auto & item : image_control_ptr_vec)
-	{
-		if (item == nullptr) continue;
-		item->is_playing = false;
-	}
     for (auto item : image_control_ptr_vec)
     {
         if (item == nullptr) continue;

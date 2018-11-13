@@ -552,6 +552,12 @@ int Base_ImageContrler::Regist()
 		case FG_COL48:	m_BytesPerPixel = 6; break;
 		}
 		// Memory allocation
+		//释放上一次残留内存
+		if (m_apc_data.mem != nullptr) {
+			Fg_FreeMemEx(m_apc_data.fg, m_apc_data.mem);
+			m_apc_data.mem = nullptr;
+		}
+		//分配新内存
 		size_t totalBufSize = std::atoi(m_CameraParameters.m_ImageWidth.c_str()) 
 							* std::atoi(m_CameraParameters.m_ImageHeight.c_str())  * m_BufferAmount * m_BytesPerPixel;
 		dma_mem *pMem = Fg_AllocMemEx(m_apc_data.fg, totalBufSize, m_BufferAmount);
@@ -598,21 +604,19 @@ int Base_ImageContrler::Run_Acquire(size_t acquire_count)
 void Base_ImageContrler::Stop_Acquire()
 {
 	Fg_stopAcquireEx(m_apc_data.fg, m_apc_data.dmaIndex, m_apc_data.mem, 0);
+
 	if (m_Is_registered) {
 		Fg_registerApcHandler(m_apc_data.fg, m_apc_data.dmaIndex, NULL, FG_APC_CONTROL_BASIC);
 		m_Is_registered = false;
 	}
-	if (m_apc_data.mem != nullptr) {
-		Fg_FreeMemEx(m_apc_data.fg, m_apc_data.mem);
-		m_apc_data.mem = nullptr;
-	}
+	//内存释放 放在Regist内管理
 }
 
 extern "C" int CallBackFunc(frameindex_t picNr, fg_apc_data *apcdata)
 {
 	void *data = Fg_getImagePtrEx(apcdata->fg, picNr, apcdata->dmaIndex, apcdata->mem);
-	size_t img_len;
-	Fg_getParameterEx(apcdata->fg, FG_TRANSFER_LEN, &img_len, apcdata->dmaIndex, apcdata->mem, picNr);
+	size_t img_len=0;
+	//Fg_getParameterEx(apcdata->fg, FG_TRANSFER_LEN, &img_len, apcdata->dmaIndex, apcdata->mem, picNr);
 	apcdata->m_ImageContrler->HowToProcessImages(data, img_len);
 	return 0;
 }

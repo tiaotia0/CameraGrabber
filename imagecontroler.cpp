@@ -21,8 +21,9 @@ void ImageDisplayControler::HowToProcessImages(void *img_prt, size_t img_len)
 	BYTE* img_byte = (BYTE*)img_prt;
 	int actual_img_width = std::atoi(m_CameraParameters.m_ImageWidth.c_str());
 	int actual_img_heigh = std::atoi(m_CameraParameters.m_ImageHeight.c_str());
+	//QImage()constuctor: img_byte必须在构造的QImage图像生存周期内valid，为解除该特性，显式调复制构造=
 
-	QImage qImg(img_byte, actual_img_width, actual_img_heigh, actual_img_width, QImage::Format_Indexed8);
+	QImage qImg = QImage(img_byte, actual_img_width, actual_img_heigh, actual_img_width, QImage::Format_Indexed8);
 	Gray8bitQImageCorlorTable cvt;
 	qImg.setColorTable(cvt.GetGray8bitQImageCorlorTable());
 	emit sendImage(qImg);
