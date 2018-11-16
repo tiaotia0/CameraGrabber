@@ -46,13 +46,13 @@
     <ClCompile Include="siliconboard.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="imagecontroler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="calibrationdialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="cv_calibration.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="imgprocesscontroler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -64,6 +64,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <QtMoc Include="calibrationdialog.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="imgprocesscontroler.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
@@ -82,11 +85,9 @@
     <QtUic Include="calibrationdialog.ui">
       <Filter>Form Files</Filter>
     </QtUic>
-  </ItemGroup>
-  <ItemGroup>
-    <QtMoc Include="imagecontroler.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
+    <QtUic Include="cali_para_set_dialog.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_mainwindow.h">
@@ -100,6 +101,9 @@
     </ClInclude>
     <ClInclude Include="cv_calibration.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_cali_para_set_dialog.h">
+      <Filter>Generated Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

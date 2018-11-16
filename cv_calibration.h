@@ -6,62 +6,80 @@
 #include "opencv2/highgui/highgui.hpp"
 
 using std::vector;
-struct SingleCalibrateResult
+struct BaseCalibrateResult
 {
-	cv::Mat m_CameraMatrix; /* æ‘„åƒæœºå†…å‚æ•°çŸ©é˜µ */
-	cv::Mat m_DistCoeffs; /* æ‘„åƒæœºçš„5ä¸ªç•¸å˜ç³»æ•°ï¼šk1,k2,p1,p2,k3 */
-	vector<double> m_Errorvec; /* æ¯å¹…å›¾åƒçš„æ ‡å®šè¯¯å·® */
-	vector<cv::Mat> m_TvecsMat;  /* æ¯å¹…å›¾åƒçš„æ—‹è½¬å‘é‡ */	//å¯è½¬æ¢ä¸ºæ—‹è½¬çŸ©é˜µï¼šRodrigues(m_TvecsMat[i], rotation_matrix);
-	vector<cv::Mat> m_RvecsMat; /* æ¯å¹…å›¾åƒçš„å¹³ç§»å‘é‡ */
+	cv::Mat m_CameraMatrix; /* ÉãÏñ»úÄÚ²ÎÊı¾ØÕó */
+	cv::Mat m_DistCoeffs; /* ÉãÏñ»úµÄ5¸ö»û±äÏµÊı£ºk1,k2,p1,p2,k3 */
+	vector<double> m_Errorvec; /* Ã¿·ùÍ¼ÏñµÄ±ê¶¨Îó²î */
+	double m_TotalErr; /* ±ê¶¨Îó²î */
+	vector<cv::Mat> m_TvecsMat;  /* Ã¿·ùÍ¼ÏñµÄĞı×ªÏòÁ¿ */	//¿É×ª»»ÎªĞı×ª¾ØÕó£ºRodrigues(m_TvecsMat[i], rotation_matrix);
+	vector<cv::Mat> m_RvecsMat; /* Ã¿·ùÍ¼ÏñµÄÆ½ÒÆÏòÁ¿ */
 };
 
-struct DualCalibrateResult
+struct CameraCalibrateResult
 {
-	SingleCalibrateResult m_LeftCalibrateResult, m_RightCalibrateResult;
+	BaseCalibrateResult m_LeftCalibrateResult, m_RightCalibrateResult;
 	double m_RMS_error;
-	cv::Mat R, T, E, F; //R æ—‹è½¬çŸ¢é‡ Tå¹³ç§»çŸ¢é‡ Eæœ¬å¾çŸ©é˜µ FåŸºç¡€çŸ©é˜µ
+	cv::Mat R, T, E, F; //R Ğı×ªÊ¸Á¿ TÆ½ÒÆÊ¸Á¿ E±¾Õ÷¾ØÕó F»ù´¡¾ØÕó
 };
-class SingleCalibrator
-{
-public:
-	//ç›®å‰è¯¥æ„é€ å‡½æ•°å…ˆåªæœ‰æ–¹æ ¼æ£‹ç›˜æ ¼æ ‡å®š
-	SingleCalibrator(size_t image_width, size_t image_height, size_t board_corner_width, size_t board_corner_height,size_t real_square_size,size_t calibration_amount);
 
-	bool SingleCalibrate(void * img_ptr, cv::Mat &img_to_show);
-	SingleCalibrateResult GetSingleCalibrateResult();
+enum CalibrationBoardType
+{
+	CircleGrid=0,
+	ChessBorad = 1
+};
+
+class BaseCalibrator
+{
+	//Ä¿Ç°¸Ã¹¹Ôìº¯ÊıÏÈÖ»ÓĞµÈÖáÔ²ĞÎ Óë ·½¸ñÆåÅÌ¸ñ±ê¶¨
+friend class CameraCalibrator;
 private:
-    SingleCalibrator() {}
+	BaseCalibrator() {};
+	BaseCalibrator(size_t image_width, size_t image_height, size_t board_corner_width, size_t board_corner_height, size_t real_square_size, size_t calibration_pic_amount, CalibrationBoardType cali_board_type);
+
+	int Calibrate(void * img_ptr, cv::Mat &img_to_show);
+	BaseCalibrateResult GetBaseCalibrateResult();
+	CalibrationBoardType m_CalibrationBoardType;
+
 	size_t m_RemainPicsToCalibrate ;
-	cv::Size m_ImageSize, /* å›¾åƒçš„å°ºå¯¸ */
-		m_BoardSize;	/* æ ‡å®šæ¿ä¸Šæ¯è¡Œã€åˆ—çš„è§’ç‚¹æ•° */
-	cv::Size m_SquareSize;  /* å®é™…çš„æ ‡å®šæ¿ä¸Šæ¯ä¸ªæ£‹ç›˜æ ¼çš„å¤§å° */
-	std::vector<std::vector<cv::Point2f>> m_ImageCorners_seq;	/* ä¿å­˜æ£€æµ‹åˆ°çš„æ‰€æœ‰è§’ç‚¹(äºšåƒç´ ç‚¹) */
-	vector<vector<cv::Point3f>> m_RealObjectPoints_of_AllImages; /* ä¿å­˜æ‰€æœ‰å›¾åƒä¸Šçš„æ ‡å®šæ¿ä¸Šè§’ç‚¹çš„ä¸‰ç»´åæ ‡ï¼ˆå®šå€¼ï¼‰ */
-	cv::Mat m_CameraMatrix ; /* æ‘„åƒæœºå†…å‚æ•°çŸ©é˜µ */
-	cv::Mat m_DistCoeffs ; /* æ‘„åƒæœºçš„5ä¸ªç•¸å˜ç³»æ•°ï¼šk1,k2,p1,p2,k3 */
-	vector<cv::Mat> m_TvecsMat;  /* æ¯å¹…å›¾åƒçš„æ—‹è½¬å‘é‡ */
-	vector<cv::Mat> m_RvecsMat; /* æ¯å¹…å›¾åƒçš„å¹³ç§»å‘é‡ */
-	vector<double> m_Errorvec; /* æ¯å¹…å›¾åƒçš„æ ‡å®šè¯¯å·® */
-	
+	cv::Size m_ImageSize, /* Í¼ÏñµÄ³ß´ç */
+		m_BoardSize;	/* ±ê¶¨°åÉÏÃ¿ĞĞ¡¢ÁĞµÄ½ÇµãÊı */
+	cv::Size m_SquareSize;  /* Êµ¼ÊµÄ±ê¶¨°åÉÏÃ¿¸öÆåÅÌ¸ñµÄ´óĞ¡ */
+	std::vector<std::vector<cv::Point2f>> m_ImageCorners_seq;	/* ±£´æ¼ì²âµ½µÄËùÓĞ½Çµã(ÑÇÏñËØµã) */
+	vector<vector<cv::Point3f>> m_RealObjectPoints_of_AllImages; /* ±£´æËùÓĞÍ¼ÏñÉÏµÄ±ê¶¨°åÉÏ½ÇµãµÄÈıÎ¬×ø±ê£¨¶¨Öµ£© */
+	cv::Mat m_CameraMatrix ; /* ÉãÏñ»úÄÚ²ÎÊı¾ØÕó */
+	cv::Mat m_DistCoeffs ; /* ÉãÏñ»úµÄ5¸ö»û±äÏµÊı£ºk1,k2,p1,p2,k3 */
+	vector<cv::Mat> m_TvecsMat;  /* Ã¿·ùÍ¼ÏñµÄĞı×ªÏòÁ¿ */
+	vector<cv::Mat> m_RvecsMat; /* Ã¿·ùÍ¼ÏñµÄÆ½ÒÆÏòÁ¿ */
+	vector<double> m_Errorvec; /* Ã¿·ùÍ¼ÏñµÄ±ê¶¨Îó²î */
+	double m_totalErr;
 	void ErrorCaculate();
-	friend class DualCalibrator;
 };
 
-class DualCalibrator
+class CameraCalibrator
 {
 public:
-	DualCalibrator(size_t image_width, size_t image_height, size_t board_corner_width, size_t board_corner_height, size_t real_square_size, size_t calibration_amount):
-		m_Left(image_width,image_height,board_corner_width, board_corner_height, real_square_size, calibration_amount),
-		m_Right(image_width, image_height, board_corner_width, board_corner_height, real_square_size, calibration_amount){}
-	
-	bool DualCalibrate(void * left_img_ptr, cv::Mat &left_img_to_show, void * right_img_ptr, cv::Mat &right_img_to_show);
-	DualCalibrateResult GetDualCalibrateResult();
+	CameraCalibrator(size_t image_width, size_t image_height, size_t board_corner_width, size_t board_corner_height, size_t real_square_size, size_t calibration_pic_amount, CalibrationBoardType cali_board_type):
+		m_Left(new BaseCalibrator(image_width,image_height,board_corner_width, board_corner_height, real_square_size, calibration_pic_amount, cali_board_type)),
+		m_Right(new BaseCalibrator(image_width, image_height, board_corner_width, board_corner_height, real_square_size, calibration_pic_amount, cali_board_type)){}
+
+	CameraCalibrator(void * no_left_camera, size_t image_width, size_t image_height, size_t board_corner_width, size_t board_corner_height, size_t real_square_size, size_t calibration_pic_amount, CalibrationBoardType cali_board_type):
+		m_Left(nullptr),
+		m_Right(new BaseCalibrator(image_width, image_height, board_corner_width, board_corner_height, real_square_size, calibration_pic_amount, cali_board_type)) {}
+
+	CameraCalibrator(size_t image_width, size_t image_height, size_t board_corner_width, size_t board_corner_height, size_t real_square_size, size_t calibration_pic_amount, CalibrationBoardType cali_board_type, void *no_right_camera) :
+		m_Left(new BaseCalibrator(image_width, image_height, board_corner_width, board_corner_height, real_square_size, calibration_pic_amount, cali_board_type)),
+		m_Right(nullptr){}
+
+	int Calibrate(void * left_img_ptr, cv::Mat &left_img_to_show, void * right_img_ptr, cv::Mat &right_img_to_show);
+	CameraCalibrateResult GetCalibrateResult();
+	~CameraCalibrator() {};
 private:
-    DualCalibrator() {}
-    ~DualCalibrator() {}
-	SingleCalibrator m_Left, m_Right;
-	cv::Mat R, T, E, F; //Ræ—‹è½¬çŸ¢é‡ Tå¹³ç§»çŸ¢é‡ Eæœ¬å¾çŸ©é˜µ FåŸºç¡€çŸ©é˜µ
+	CameraCalibrator() {};
+	BaseCalibrator *m_Left, *m_Right;
+	cv::Mat R, T, E, F; //RĞı×ªÊ¸Á¿ TÆ½ÒÆÊ¸Á¿ E±¾Õ÷¾ØÕó F»ù´¡¾ØÕó
 	double m_RMS_error = -1;
+	CameraCalibrateResult m_CameraCalibrateResult;
 };
 #endif // !_CV_CALIBRATION_H
 

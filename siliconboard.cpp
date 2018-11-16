@@ -616,7 +616,7 @@ extern "C" int CallBackFunc(frameindex_t picNr, fg_apc_data *apcdata)
 {
 	void *data = Fg_getImagePtrEx(apcdata->fg, picNr, apcdata->dmaIndex, apcdata->mem);
 	size_t img_len=0;
-	//Fg_getParameterEx(apcdata->fg, FG_TRANSFER_LEN, &img_len, apcdata->dmaIndex, apcdata->mem, picNr);
+	Fg_getParameterEx(apcdata->fg, FG_TRANSFER_LEN, &img_len, apcdata->dmaIndex, apcdata->mem, picNr);
 	apcdata->m_ImageContrler->HowToProcessImages(data, img_len);
 	return 0;
 }

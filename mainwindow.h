@@ -10,7 +10,10 @@
 #include <QFileDialog>
 #include <QPushButton>
 #include "siliconboard.h"
-#include "imagecontroler.h"
+#include "imgprocesscontroler.h"
+#include "cv_calibration.h"
+#include "calibrationdialog.h"
+
 
 namespace Ui {
 	class MainWindow;
@@ -32,29 +35,22 @@ private slots:
     void on_set_1_clicked();
     void on_set_2_clicked();
 
-
     void openEditor(QTreeWidgetItem *item, int column);
     void closeEditor();
 
     void on_actionLoad_triggered();
-
     void on_actionPlay_triggered();
-
     void on_actionSetImagePath_triggered();
-
 	void on_actionSetCalibPath_triggered();
-
     void on_actionStop_triggered();
-
     void on_actionRecord_triggered();
-
 	void on_actionCalibrate_triggered();
-
 	void on_actionCalib_capture_triggered();
 
 	void showImage_1(QImage qImg);
 	void showImage_2(QImage qImg);
 
+	void receiveCaliParameter(CaliParameter cali_para);
 
 private:
     Ui::MainWindow *ui;
@@ -75,10 +71,14 @@ private:
     std::vector<QLabel*> display_window;
 	std::vector<QPushButton*> set_vec;
 
-	std::string savefolder;
+	std::string images_savefolder;
+	std::string calibrate_savefolder;
 	SystemImageCaptureBoards *sysboards = nullptr;
 	ImageCaptureBoard *first_board_ptr = nullptr;
-	std::vector<Base_ImageContrler*> image_control_ptr_vec;
+	std::vector<ImageDisplayControler*> image_control_ptr_vec;
+	CaliParameter calibrate_para;
+	CameraCalibrateControler *calibrator_ptr = nullptr;
+
 	QPushButton* status_1;
 	QPushButton* status_2;
 };

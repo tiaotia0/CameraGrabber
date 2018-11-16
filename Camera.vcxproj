@@ -190,13 +190,13 @@
   <ItemGroup>
     <ClCompile Include="calibrationdialog.cpp" />
     <ClCompile Include="cv_calibration.cpp" />
-    <ClCompile Include="imagecontroler.cpp" />
+    <ClCompile Include="imgprocesscontroler.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mainwindow.cpp" />
     <ClCompile Include="siliconboard.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="imagecontroler.h">
+    <QtMoc Include="imgprocesscontroler.h">
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\GeneratedFiles\$(ConfigurationName)\.;.\GeneratedFiles;.;.\include;D:\Qt\Qt5.8.0\5.8\msvc2015\include;D:\Qt\Qt5.8.0\5.8\msvc2015\include\QtWidgets;D:\Qt\Qt5.8.0\5.8\msvc2015\include\QtGui;D:\Qt\Qt5.8.0\5.8\msvc2015\include\QtANGLE;D:\Qt\Qt5.8.0\5.8\msvc2015\include\QtCore;.\debug;D:\Qt\Qt5.8.0\5.8\msvc2015\mkspecs\win32-msvc2015</IncludePath>
       <Define Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">_WINDOWS;UNICODE;WIN32;QT_DEPRECATED_WARNINGS;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB</Define>
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\$(ConfigurationName)\.;.\GeneratedFiles;.;.\include;D:\Qt\Qt5.8.0\5.8\msvc2015\include;D:\Qt\Qt5.8.0\5.8\msvc2015\include\QtWidgets;D:\Qt\Qt5.8.0\5.8\msvc2015\include\QtGui;D:\Qt\Qt5.8.0\5.8\msvc2015\include\QtANGLE;D:\Qt\Qt5.8.0\5.8\msvc2015\include\QtCore;.\release;D:\Qt\Qt5.8.0\5.8\msvc2015\mkspecs\win32-msvc2015</IncludePath>
@@ -209,6 +209,7 @@
     <QtMoc Include="calibrationdialog.h" />
     <ClInclude Include="cv_calibration.h" />
     <ClInclude Include="GeneratedFiles\ui_calibrationdialog.h" />
+    <ClInclude Include="GeneratedFiles\ui_cali_para_set_dialog.h" />
     <ClInclude Include="GeneratedFiles\ui_mainwindow.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="siliconboard.h" />
@@ -247,6 +248,7 @@
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="calibrationdialog.ui" />
+    <QtUic Include="cali_para_set_dialog.ui" />
     <QtUic Include="mainwindow.ui">
     </QtUic>
   </ItemGroup>

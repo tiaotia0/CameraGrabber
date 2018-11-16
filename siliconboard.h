@@ -125,9 +125,6 @@ protected:
 	CameraParameters m_CameraParameters;
 	CameraMaxExposureTime_MaxFPS m_MaxExposure_FPS;
 public:
-	bool is_recording = false;
-	size_t picNr_toSave = 0;
-	std::string m_FilePathToSave;
 	virtual void HowToProcessImages(void *img_prt, size_t img_len) = 0;
 	int Regist();
 	int Run_Acquire(size_t acquire_count=0);

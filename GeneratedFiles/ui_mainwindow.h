@@ -35,7 +35,7 @@ public:
     QAction *actionCalibrate;
     QAction *actionblank_icon;
     QAction *actionSetCalibPath;
-    QAction *actioncalib_capture;
+    QAction *actionCalib_capture;
     QWidget *centralWidget;
     QGroupBox *groupBox;
     QLabel *displaywindow_1;
@@ -92,11 +92,11 @@ public:
         actionSetCalibPath = new QAction(MainWindow);
         actionSetCalibPath->setObjectName(QStringLiteral("actionSetCalibPath"));
         actionSetCalibPath->setIcon(icon4);
-        actioncalib_capture = new QAction(MainWindow);
-        actioncalib_capture->setObjectName(QStringLiteral("actioncalib_capture"));
+        actionCalib_capture = new QAction(MainWindow);
+        actionCalib_capture->setObjectName(QStringLiteral("actionCalib_capture"));
         QIcon icon6;
         icon6.addFile(QStringLiteral(":/new/iocn/resources/capture.ico"), QSize(), QIcon::Normal, QIcon::Off);
-        actioncalib_capture->setIcon(icon6);
+        actionCalib_capture->setIcon(icon6);
         centralWidget = new QWidget(MainWindow);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         groupBox = new QGroupBox(centralWidget);
@@ -191,7 +191,7 @@ public:
         mainToolBar->addSeparator();
         mainToolBar->addAction(actionCalibrate);
         mainToolBar->addAction(actionSetCalibPath);
-        mainToolBar->addAction(actioncalib_capture);
+        mainToolBar->addAction(actionCalib_capture);
 
         retranslateUi(MainWindow);
 
@@ -212,7 +212,7 @@ public:
         actionCalibrate->setText(QApplication::translate("MainWindow", "Calibrate", Q_NULLPTR));
         actionblank_icon->setText(QString());
         actionSetCalibPath->setText(QApplication::translate("MainWindow", "SetCalibPath", Q_NULLPTR));
-        actioncalib_capture->setText(QApplication::translate("MainWindow", "calib_capture", Q_NULLPTR));
+        actionCalib_capture->setText(QApplication::translate("MainWindow", "calib_capture", Q_NULLPTR));
         groupBox->setTitle(QApplication::translate("MainWindow", "Camera_1", Q_NULLPTR));
         displaywindow_1->setText(QString());
         groupBox_2->setTitle(QApplication::translate("MainWindow", "Camera_2", Q_NULLPTR));

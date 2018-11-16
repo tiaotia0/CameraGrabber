@@ -414,7 +414,7 @@
    <addaction name="separator"/>
    <addaction name="actionCalibrate"/>
    <addaction name="actionSetCalibPath"/>
-   <addaction name="actioncalib_capture"/>
+   <addaction name="actionCalib_capture"/>
   </widget>
   <action name="actionLoad">
    <property name="checkable">
@@ -496,7 +496,7 @@
     <string>SetCalibPath</string>
    </property>
   </action>
-  <action name="actioncalib_capture">
+  <action name="actionCalib_capture">
    <property name="icon">
     <iconset>
      <normaloff>:/new/iocn/resources/capture.ico</normaloff>:/new/iocn/resources/capture.ico</iconset>

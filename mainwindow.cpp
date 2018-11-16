@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "calibrationdialog.h"
 #include <direct.h>
+#include<fstream>
 
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
@@ -70,7 +71,8 @@ MainWindow::MainWindow(QWidget *parent) :
 	ui->actionStop->setDisabled(true);
 	ui->actionCalibrate->setDisabled(true);
 	ui->actionSetCalibPath->setDisabled(true);
-	ui->actioncalib_capture->setDisabled(true);
+	ui->actionCalib_capture->setDisabled(true);
+
 }
 
 MainWindow::~MainWindow()
@@ -168,13 +170,6 @@ void MainWindow::on_set_2_clicked()
 	setParameters(1);
 }
 
-void MainWindow::on_actionCalibrate_triggered()
-{
-	//显示标定对话框
-	CalibDialog* calibdialog = new CalibDialog;
-	calibdialog->show();
-}
-
 void MainWindow::openEditor(QTreeWidgetItem *item, int column)
 {
 	if (column == 2 || column == 3 || column == 4 || column == 5)
@@ -227,7 +222,7 @@ void MainWindow::on_actionLoad_triggered()
 			this->status_2->setStyleSheet("background-color:green");
         set_vec[i]->setEnabled(true);
     }
-    image_control_ptr_vec = std::vector<Base_ImageContrler*>(first_board_ptr->GetBoardPortAmount(), nullptr);
+    image_control_ptr_vec = std::vector<ImageDisplayControler*>(first_board_ptr->GetBoardPortAmount(), nullptr);
     for (size_t i = 0; i < CameraConnectStatus.size(); i++)
     {
         if (CameraConnectStatus[i] && image_control_ptr_vec[i] == nullptr)
@@ -235,9 +230,9 @@ void MainWindow::on_actionLoad_triggered()
             auto tmp_ptr = new ImageDisplayControler(*first_board_ptr, i);
             image_control_ptr_vec[i] = tmp_ptr;
 			if (i == 0)
-				connect(tmp_ptr, SIGNAL(sendImage(QImage)), this, SLOT(showImage_1(QImage)));
+				connect(tmp_ptr, SIGNAL(sendDisplayImage(QImage)), this, SLOT(showImage_1(QImage)));
 			else 
-				connect(tmp_ptr, SIGNAL(sendImage(QImage)), this, SLOT(showImage_2(QImage)));
+				connect(tmp_ptr, SIGNAL(sendDisplayImage(QImage)), this, SLOT(showImage_2(QImage)));
 
             showParameters(i);
 			tmp_ptr->FreshCameraParametersToImageCaptureBoard();
@@ -267,6 +262,7 @@ void MainWindow::on_actionPlay_triggered()
     {
         if (item == nullptr) continue;
         item->Regist();
+		item->is_playing = true;
     }
     for (auto item : image_control_ptr_vec)
     {
@@ -283,7 +279,7 @@ void MainWindow::on_actionSetImagePath_triggered()
 		//创建目录
 		std::string tmp_path = fileName.toStdString();
 		tmp_path=std::regex_replace(tmp_path, std::regex("/"), std::string("\\"));
-		savefolder = tmp_path;
+		images_savefolder = tmp_path;
     }
 	ui->actionRecord->setDisabled(false);
 }
@@ -301,7 +297,7 @@ void MainWindow::on_actionRecord_triggered()
 		time_t t = time(0);
 		char tmp_time[64];
 		strftime(tmp_time, sizeof(tmp_time), "%Y%m%d%H%M", localtime(&t));
-		std::string tmp_path = savefolder + "\\" + std::string(tmp_time) + "Camera" + std::to_string(i + 1);
+		std::string tmp_path = images_savefolder + "\\" + std::string(tmp_time) + "Camera" + std::to_string(i + 1);
 		mkdir(tmp_path.c_str());
 
 		image_control_ptr_vec[i]->m_FilePathToSave = tmp_path;
@@ -325,8 +321,69 @@ void MainWindow::on_actionStop_triggered()
     {
         if (item == nullptr) continue;
         item->is_recording = false;
+		item->is_playing = false;
         item->Stop_Acquire();
     }
+}
+
+void MainWindow::on_actionCalibrate_triggered()
+{
+	ui->actionSetCalibPath->setEnabled(true);
+	CaliParaSetDialog* caliparasetdialog = new CaliParaSetDialog;
+	qRegisterMetaType<CaliParameter>("CaliParameter");
+	connect(caliparasetdialog, SIGNAL(sendCaliParameter(CaliParameter)), this, SLOT(receiveCaliParameter(CaliParameter)));
+	caliparasetdialog->show();
+}
+
+void MainWindow::receiveCaliParameter(CaliParameter cali_para)
+{
+	this->calibrate_para = cali_para;
+	if (this->calibrator_ptr != nullptr) delete calibrator_ptr;
+	if (image_control_ptr_vec[0] && image_control_ptr_vec[1])
+	{
+		auto cam_para = image_control_ptr_vec[0]->GetCameraParameter();
+		this->calibrator_ptr = new CameraCalibrateControler(
+			atoi(cam_para.m_ImageWidth.c_str()),
+			atoi(cam_para.m_ImageHeight.c_str()),
+			calibrate_para.CornerAmountAlongWidth,
+			calibrate_para.CornerAmountAlongHeight,
+			calibrate_para.DistanceBetweenCorners,
+			calibrate_para.PictureAmount,
+			(CalibrationBoardType)calibrate_para.CalibrationBoardType);
+
+		connect((ImageDisplayControler*)image_control_ptr_vec[0], SIGNAL(sendCalibImage(void *)), calibrator_ptr, SLOT(recieveLeftImage(void *)));
+		connect((ImageDisplayControler*)image_control_ptr_vec[1], SIGNAL(sendCalibImage(void *)), calibrator_ptr, SLOT(recieveRightImage(void *)));
+	}
+	else if (image_control_ptr_vec[0])
+	{
+		auto cam_para = image_control_ptr_vec[0]->GetCameraParameter();
+		this->calibrator_ptr =new CameraCalibrateControler(
+			atoi(cam_para.m_ImageWidth.c_str()),
+			atoi(cam_para.m_ImageHeight.c_str()),
+			calibrate_para.CornerAmountAlongWidth,
+			calibrate_para.CornerAmountAlongHeight,
+			calibrate_para.DistanceBetweenCorners,
+			calibrate_para.PictureAmount,
+			(CalibrationBoardType)calibrate_para.CalibrationBoardType,
+			nullptr);
+
+		connect((ImageDisplayControler*)image_control_ptr_vec[0], SIGNAL(sendCalibImage(void *)), calibrator_ptr, SLOT(recieveLeftImage(void *)));
+	}
+	else if(image_control_ptr_vec[1])
+	{
+		auto cam_para = image_control_ptr_vec[1]->GetCameraParameter();
+		this->calibrator_ptr = new CameraCalibrateControler(
+			nullptr,
+			atoi(cam_para.m_ImageWidth.c_str()),
+			atoi(cam_para.m_ImageHeight.c_str()),
+			calibrate_para.CornerAmountAlongWidth,
+			calibrate_para.CornerAmountAlongHeight,
+			calibrate_para.DistanceBetweenCorners,
+			calibrate_para.PictureAmount,
+			(CalibrationBoardType)calibrate_para.CalibrationBoardType);
+
+		connect((ImageDisplayControler*)image_control_ptr_vec[1], SIGNAL(sendCalibImage(void *)), calibrator_ptr, SLOT(recieveRightImage(void *)));
+	}
 }
 
 void MainWindow::on_actionSetCalibPath_triggered()
@@ -335,11 +392,177 @@ void MainWindow::on_actionSetCalibPath_triggered()
 
     if (!fileName.isNull())
     {
+		//创建目录
+		std::string tmp_path = fileName.toStdString();
+		tmp_path = std::regex_replace(tmp_path, std::regex("/"), std::string("\\"));
+		calibrate_savefolder = tmp_path;
 
+		ui->actionCalib_capture->setEnabled(true);
     }
 }
 
 void MainWindow::on_actionCalib_capture_triggered()
 {
+	//显示标定对话框
+	CalibDialog* calibdialog = new CalibDialog;
+	for (size_t i = 0; i < image_control_ptr_vec.size(); i++)
+	{
+		if (image_control_ptr_vec[i])
+		{
+			if (i == 0)
+			{
+				connect(calibrator_ptr, SIGNAL(sendLeftCalibImage(QImage)), calibdialog, SLOT(showCalibImage_1(QImage)));
+			}
+			else
+			{
+				connect(calibrator_ptr, SIGNAL(sendRightCalibImage(QImage)), calibdialog, SLOT(showCalibImage_2(QImage)));
+			}
+		}
+	}
+	connect(calibrator_ptr, SIGNAL(sendCalibrateStatus(QVector<QString>)), calibdialog, SLOT(showCalibStatus(QVector<QString>)));
+	calibdialog->show();
+	//先停
+	for (auto item : image_control_ptr_vec)
+	{
+		if (item == nullptr) continue;
+		item->Stop_Acquire();
+		item->is_playing = false;
+		item->is_recording = false;
+	}
+	//采一张
+	for (auto & item : image_control_ptr_vec)
+	{
+		if (item == nullptr) continue;
+		item->Regist();
+		item->is_calibrating = true;
+	}
+	for (auto item : image_control_ptr_vec)
+	{
+		if (item == nullptr) continue;
+		item->Run_Acquire(1);
+	}
+	while (1)
+	{
+		if (image_control_ptr_vec[0] != nullptr && image_control_ptr_vec[1] != nullptr)
+		{
+			if (calibrator_ptr->left_img_ptr != nullptr && calibrator_ptr->right_img_ptr != nullptr) break;
+			else continue;
+		}
+		if (image_control_ptr_vec[0] != nullptr && image_control_ptr_vec[1] == nullptr)
+		{
+			if (calibrator_ptr->left_img_ptr != nullptr) break;
+			else continue;
+		}
+		if (image_control_ptr_vec[0] == nullptr && image_control_ptr_vec[1] != nullptr)
+		{
+			if (calibrator_ptr->right_img_ptr != nullptr) break;
+			else continue;
+		}
+	}
+	//标定,转QImg,emit
+	cv::Mat cvLeftImg, cvRightImg;
+	QImage qLeftImg, qRightImg;
+	Gray8bitQImageCorlorTable cvt;
+	int res;
+	if (image_control_ptr_vec[0] != nullptr && image_control_ptr_vec[1] != nullptr)
+	{
+		res=calibrator_ptr->Calibrate(calibrator_ptr->left_img_ptr, cvLeftImg, calibrator_ptr->right_img_ptr, cvRightImg);
+		if (res >= 0)
+		{
+			qLeftImg = QImage(cvLeftImg.data, calibrator_ptr->m_img_width, calibrator_ptr->m_img_height, QImage::Format_Indexed8);
+			qRightImg = QImage(cvRightImg.data, calibrator_ptr->m_img_width, calibrator_ptr->m_img_height, QImage::Format_Indexed8);
+			qLeftImg.setColorTable(cvt.GetGray8bitQImageCorlorTable());
+			qRightImg.setColorTable(cvt.GetGray8bitQImageCorlorTable());
 
+			emit calibrator_ptr->sendLeftCalibImage(qLeftImg);
+			emit calibrator_ptr->sendLeftCalibImage(qRightImg);
+			emit calibrator_ptr->sendCalibrateStatus(QVector<QString>{
+				"ValidImage",
+				"ValidImage",
+				QString::fromStdString(std::to_string(this->calibrate_para.PictureAmount - res) + "/" + std::to_string(this->calibrate_para.PictureAmount))});
+		}
+		else
+		{
+			emit calibrator_ptr->sendCalibrateStatus(QVector<QString>{
+				"INValidImage",
+				"INValidImage",
+				QString::fromStdString(std::to_string(this->calibrate_para.PictureAmount - res) + "/" + std::to_string(this->calibrate_para.PictureAmount))});
+		}
+	}
+	else if (image_control_ptr_vec[0] != nullptr && image_control_ptr_vec[1] == nullptr)
+	{
+		res=calibrator_ptr->Calibrate(calibrator_ptr->left_img_ptr, cvLeftImg, nullptr, cvRightImg);
+		if (res >= 0)
+		{
+			qLeftImg = QImage(cvLeftImg.data, calibrator_ptr->m_img_width, calibrator_ptr->m_img_height, QImage::Format_Indexed8);
+			qLeftImg.setColorTable(cvt.GetGray8bitQImageCorlorTable());
+
+			emit calibrator_ptr->sendLeftCalibImage(qLeftImg);
+			emit calibrator_ptr->sendCalibrateStatus(QVector<QString>{
+				"ValidImage",
+				" ",
+				QString::fromStdString(std::to_string(this->calibrate_para.PictureAmount - res) + "/" + std::to_string(this->calibrate_para.PictureAmount))});
+		}
+		else
+		{
+			emit calibrator_ptr->sendCalibrateStatus(QVector<QString>{
+				"INValidImage",
+				" ",
+				QString::fromStdString(std::to_string(this->calibrate_para.PictureAmount - res) + "/" + std::to_string(this->calibrate_para.PictureAmount))});
+
+		}
+	}
+	else if (image_control_ptr_vec[0] == nullptr && image_control_ptr_vec[1] != nullptr)
+	{
+		res=calibrator_ptr->Calibrate(nullptr, cvLeftImg, calibrator_ptr->right_img_ptr, cvRightImg);
+		if (res >= 0)
+		{
+			qRightImg = QImage(cvRightImg.data, calibrator_ptr->m_img_width, calibrator_ptr->m_img_height, QImage::Format_Indexed8);
+			qRightImg.setColorTable(cvt.GetGray8bitQImageCorlorTable());
+
+			emit calibrator_ptr->sendLeftCalibImage(qRightImg);
+			emit calibrator_ptr->sendCalibrateStatus(QVector<QString>{
+				" ",
+				"ValidImage",
+				QString::fromStdString(std::to_string(this->calibrate_para.PictureAmount - res) + "/" + std::to_string(this->calibrate_para.PictureAmount))});
+		}
+		else
+		{
+			emit calibrator_ptr->sendCalibrateStatus(QVector<QString>{
+				" ",
+				"INValidImage",
+				QString::fromStdString(std::to_string(this->calibrate_para.PictureAmount - res) + "/" + std::to_string(this->calibrate_para.PictureAmount))});
+		}
+	}
+	//若标定完，显示结果并保存
+	if (0 == res)
+	{
+		CameraCalibrateResult calib_result = calibrator_ptr->GetCalibrateResult();
+		time_t t = time(0);
+		char tmp_time[64];
+		strftime(tmp_time, sizeof(tmp_time), "%Y%m%d%H%M", localtime(&t));
+		std::string tmp_path = calibrate_savefolder + "\\" + std::string(tmp_time) + "CameraCalibrate.txt";
+		std::ofstream outfile(tmp_path.c_str());
+		outfile << "text";
+		outfile.close();
+	}
+	//stop
+	for (auto item : image_control_ptr_vec)
+	{
+		if (item == nullptr) continue;
+		item->is_calibrating = false;
+		item->Stop_Acquire();
+	}
+	//continue to play
+	for (auto & item : image_control_ptr_vec)
+	{
+		if (item == nullptr) continue;
+		item->Regist();
+		item->is_playing = true;
+	}
+	for (auto item : image_control_ptr_vec)
+	{
+		if (item == nullptr) continue;
+		item->Run_Acquire();
+	}
 }
