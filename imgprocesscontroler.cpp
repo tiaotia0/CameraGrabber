@@ -45,8 +45,18 @@ void ImageDisplayControler::HowToProcessImages(void *img_prt, size_t img_len)
 void CameraCalibrateControler::recieveLeftImage(void * img_ptr)
 {
 	left_img_ptr = img_ptr;
+	while(!calib_mtx.tryLock());
+	calib_img_count++;
+	if (calib_img_count == camera_num)
+		emit continue_calib();
+	calib_mtx.unlock();
 }
 void CameraCalibrateControler::recieveRightImage(void * img_ptr)
 {
 	right_img_ptr = img_ptr;
+	while (!calib_mtx.tryLock());
+	calib_img_count++;
+	if (calib_img_count == camera_num)
+		emit continue_calib();
+	calib_mtx.unlock();
 }

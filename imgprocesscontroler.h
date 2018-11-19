@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <QVector>
 #include <memory>
+#include <qmutex.h>
 
 class Gray8bitQImageCorlorTable {
 public:
@@ -22,7 +23,7 @@ class ImageDisplayControler : public QObject, public Base_ImageContrler
 
 public:
 	bool is_recording = false;
-	bool is_calibrating = false;
+	volatile bool is_calibrating = false;
 	bool is_playing = false;
 	size_t picNr_toSave = 0;
 	std::string m_FilePathToSave;
@@ -30,7 +31,7 @@ public:
     ImageDisplayControler(ImageCaptureBoard & img_cap_board, size_t port_index) :Base_ImageContrler(img_cap_board, port_index) {}
     void HowToProcessImages(void *img_prt, size_t img_len) override;
 signals:
-	void sendCalibImage(void *Img_ptr);
+	void sendCalibImage(void *img_ptr);
 	void sendDisplayImage(QImage qImg);
 };
 
@@ -55,15 +56,19 @@ public:
 	void * right_img_ptr = nullptr;
 	int m_img_width,
 		m_img_height;
+	QMutex calib_mtx;
+	size_t calib_img_count;
+	size_t camera_num = 0;
+
 signals:
 	void sendLeftCalibImage(QImage qimg);
 	void sendRightCalibImage(QImage qimg);
 	void sendCalibrateStatus(QVector<QString> Qvec);
+	void continue_calib();
 
-private slots:
+public slots:
 	void recieveLeftImage(void * img_ptr);
 	void recieveRightImage(void * img_ptr);
-
 };
 
 #endif // IMAGEPROCESSCONTROLER_H

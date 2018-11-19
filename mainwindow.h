@@ -51,6 +51,8 @@ private slots:
 	void showImage_2(QImage qImg);
 
 	void receiveCaliParameter(CaliParameter cali_para);
+	void continue_calib_func();
+
 
 private:
     Ui::MainWindow *ui;

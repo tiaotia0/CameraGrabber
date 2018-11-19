@@ -230,10 +230,13 @@ void MainWindow::on_actionLoad_triggered()
             auto tmp_ptr = new ImageDisplayControler(*first_board_ptr, i);
             image_control_ptr_vec[i] = tmp_ptr;
 			if (i == 0)
+			{
 				connect(tmp_ptr, SIGNAL(sendDisplayImage(QImage)), this, SLOT(showImage_1(QImage)));
-			else 
+			}
+			else
+			{
 				connect(tmp_ptr, SIGNAL(sendDisplayImage(QImage)), this, SLOT(showImage_2(QImage)));
-
+			}
             showParameters(i);
 			tmp_ptr->FreshCameraParametersToImageCaptureBoard();
         }
@@ -241,6 +244,7 @@ void MainWindow::on_actionLoad_triggered()
 	ui->actionLoad->setDisabled(false);
 	ui->actionPlay->setDisabled(false);
 }
+
 
 void MainWindow::showImage_1(QImage qImg)
 {
@@ -350,9 +354,8 @@ void MainWindow::receiveCaliParameter(CaliParameter cali_para)
 			calibrate_para.DistanceBetweenCorners,
 			calibrate_para.PictureAmount,
 			(CalibrationBoardType)calibrate_para.CalibrationBoardType);
-
-		connect((ImageDisplayControler*)image_control_ptr_vec[0], SIGNAL(sendCalibImage(void *)), calibrator_ptr, SLOT(recieveLeftImage(void *)));
-		connect((ImageDisplayControler*)image_control_ptr_vec[1], SIGNAL(sendCalibImage(void *)), calibrator_ptr, SLOT(recieveRightImage(void *)));
+		connect(image_control_ptr_vec[0], SIGNAL(sendCalibImage(void *)), this->calibrator_ptr, SLOT(recieveLeftImage(void *)));
+		connect(image_control_ptr_vec[1], SIGNAL(sendCalibImage(void *)), this->calibrator_ptr, SLOT(recieveRightImage(void *)));
 	}
 	else if (image_control_ptr_vec[0])
 	{
@@ -366,8 +369,8 @@ void MainWindow::receiveCaliParameter(CaliParameter cali_para)
 			calibrate_para.PictureAmount,
 			(CalibrationBoardType)calibrate_para.CalibrationBoardType,
 			nullptr);
+		connect(image_control_ptr_vec[0], SIGNAL(sendCalibImage(void*)), calibrator_ptr, SLOT(recieveLeftImage(void *)));
 
-		connect((ImageDisplayControler*)image_control_ptr_vec[0], SIGNAL(sendCalibImage(void *)), calibrator_ptr, SLOT(recieveLeftImage(void *)));
 	}
 	else if(image_control_ptr_vec[1])
 	{
@@ -381,8 +384,7 @@ void MainWindow::receiveCaliParameter(CaliParameter cali_para)
 			calibrate_para.DistanceBetweenCorners,
 			calibrate_para.PictureAmount,
 			(CalibrationBoardType)calibrate_para.CalibrationBoardType);
-
-		connect((ImageDisplayControler*)image_control_ptr_vec[1], SIGNAL(sendCalibImage(void *)), calibrator_ptr, SLOT(recieveRightImage(void *)));
+		connect(image_control_ptr_vec[1], SIGNAL(sendCalibImage(void *)), this->calibrator_ptr, SLOT(recieveRightImage(void *)));
 	}
 }
 
@@ -420,7 +422,13 @@ void MainWindow::on_actionCalib_capture_triggered()
 		}
 	}
 	connect(calibrator_ptr, SIGNAL(sendCalibrateStatus(QVector<QString>)), calibdialog, SLOT(showCalibStatus(QVector<QString>)));
+	connect(calibrator_ptr, SIGNAL(continue_calib()), this, SLOT(continue_calib_func()));
 	calibdialog->show();
+
+	calibrator_ptr->calib_img_count = 0;
+	for (auto x : image_control_ptr_vec)
+		if (x) calibrator_ptr->camera_num++;
+
 	//先停
 	for (auto item : image_control_ptr_vec)
 	{
@@ -441,24 +449,23 @@ void MainWindow::on_actionCalib_capture_triggered()
 		if (item == nullptr) continue;
 		item->Run_Acquire(1);
 	}
-	while (1)
-	{
-		if (image_control_ptr_vec[0] != nullptr && image_control_ptr_vec[1] != nullptr)
-		{
-			if (calibrator_ptr->left_img_ptr != nullptr && calibrator_ptr->right_img_ptr != nullptr) break;
-			else continue;
-		}
-		if (image_control_ptr_vec[0] != nullptr && image_control_ptr_vec[1] == nullptr)
-		{
-			if (calibrator_ptr->left_img_ptr != nullptr) break;
-			else continue;
-		}
-		if (image_control_ptr_vec[0] == nullptr && image_control_ptr_vec[1] != nullptr)
-		{
-			if (calibrator_ptr->right_img_ptr != nullptr) break;
-			else continue;
-		}
-	}
+
+	//if (image_control_ptr_vec[0] != nullptr && image_control_ptr_vec[1] != nullptr)
+	//{
+	//	if (calibrator_ptr->left_img_ptr != nullptr && calibrator_ptr->right_img_ptr != nullptr);
+	//}
+	//if (image_control_ptr_vec[0] != nullptr && image_control_ptr_vec[1] == nullptr)
+	//{
+	//	if (calibrator_ptr->left_img_ptr != nullptr);
+	//}
+	//if (image_control_ptr_vec[0] == nullptr && image_control_ptr_vec[1] != nullptr)
+	//{
+	//	if (calibrator_ptr->right_img_ptr != nullptr);
+	//}
+}
+
+void MainWindow::continue_calib_func()
+{
 	//标定,转QImg,emit
 	cv::Mat cvLeftImg, cvRightImg;
 	QImage qLeftImg, qRightImg;
@@ -466,7 +473,7 @@ void MainWindow::on_actionCalib_capture_triggered()
 	int res;
 	if (image_control_ptr_vec[0] != nullptr && image_control_ptr_vec[1] != nullptr)
 	{
-		res=calibrator_ptr->Calibrate(calibrator_ptr->left_img_ptr, cvLeftImg, calibrator_ptr->right_img_ptr, cvRightImg);
+		res = calibrator_ptr->Calibrate(calibrator_ptr->left_img_ptr, cvLeftImg, calibrator_ptr->right_img_ptr, cvRightImg);
 		if (res >= 0)
 		{
 			qLeftImg = QImage(cvLeftImg.data, calibrator_ptr->m_img_width, calibrator_ptr->m_img_height, QImage::Format_Indexed8);
@@ -478,20 +485,20 @@ void MainWindow::on_actionCalib_capture_triggered()
 			emit calibrator_ptr->sendLeftCalibImage(qRightImg);
 			emit calibrator_ptr->sendCalibrateStatus(QVector<QString>{
 				"ValidImage",
-				"ValidImage",
-				QString::fromStdString(std::to_string(this->calibrate_para.PictureAmount - res) + "/" + std::to_string(this->calibrate_para.PictureAmount))});
+					"ValidImage",
+					QString::fromStdString(std::to_string(this->calibrate_para.PictureAmount - res) + "/" + std::to_string(this->calibrate_para.PictureAmount))});
 		}
 		else
 		{
 			emit calibrator_ptr->sendCalibrateStatus(QVector<QString>{
 				"INValidImage",
-				"INValidImage",
-				QString::fromStdString(std::to_string(this->calibrate_para.PictureAmount - res) + "/" + std::to_string(this->calibrate_para.PictureAmount))});
+					"INValidImage",
+					QString::fromStdString(std::to_string(this->calibrate_para.PictureAmount - res) + "/" + std::to_string(this->calibrate_para.PictureAmount))});
 		}
 	}
 	else if (image_control_ptr_vec[0] != nullptr && image_control_ptr_vec[1] == nullptr)
 	{
-		res=calibrator_ptr->Calibrate(calibrator_ptr->left_img_ptr, cvLeftImg, nullptr, cvRightImg);
+		res = calibrator_ptr->Calibrate(calibrator_ptr->left_img_ptr, cvLeftImg, nullptr, cvRightImg);
 		if (res >= 0)
 		{
 			qLeftImg = QImage(cvLeftImg.data, calibrator_ptr->m_img_width, calibrator_ptr->m_img_height, QImage::Format_Indexed8);
@@ -500,21 +507,21 @@ void MainWindow::on_actionCalib_capture_triggered()
 			emit calibrator_ptr->sendLeftCalibImage(qLeftImg);
 			emit calibrator_ptr->sendCalibrateStatus(QVector<QString>{
 				"ValidImage",
-				" ",
-				QString::fromStdString(std::to_string(this->calibrate_para.PictureAmount - res) + "/" + std::to_string(this->calibrate_para.PictureAmount))});
+					" ",
+					QString::fromStdString(std::to_string(this->calibrate_para.PictureAmount - res) + "/" + std::to_string(this->calibrate_para.PictureAmount))});
 		}
 		else
 		{
 			emit calibrator_ptr->sendCalibrateStatus(QVector<QString>{
 				"INValidImage",
-				" ",
-				QString::fromStdString(std::to_string(this->calibrate_para.PictureAmount - res) + "/" + std::to_string(this->calibrate_para.PictureAmount))});
+					" ",
+					QString::fromStdString(std::to_string(this->calibrate_para.PictureAmount - res) + "/" + std::to_string(this->calibrate_para.PictureAmount))});
 
 		}
 	}
 	else if (image_control_ptr_vec[0] == nullptr && image_control_ptr_vec[1] != nullptr)
 	{
-		res=calibrator_ptr->Calibrate(nullptr, cvLeftImg, calibrator_ptr->right_img_ptr, cvRightImg);
+		res = calibrator_ptr->Calibrate(nullptr, cvLeftImg, calibrator_ptr->right_img_ptr, cvRightImg);
 		if (res >= 0)
 		{
 			qRightImg = QImage(cvRightImg.data, calibrator_ptr->m_img_width, calibrator_ptr->m_img_height, QImage::Format_Indexed8);
@@ -523,15 +530,15 @@ void MainWindow::on_actionCalib_capture_triggered()
 			emit calibrator_ptr->sendLeftCalibImage(qRightImg);
 			emit calibrator_ptr->sendCalibrateStatus(QVector<QString>{
 				" ",
-				"ValidImage",
-				QString::fromStdString(std::to_string(this->calibrate_para.PictureAmount - res) + "/" + std::to_string(this->calibrate_para.PictureAmount))});
+					"ValidImage",
+					QString::fromStdString(std::to_string(this->calibrate_para.PictureAmount - res) + "/" + std::to_string(this->calibrate_para.PictureAmount))});
 		}
 		else
 		{
 			emit calibrator_ptr->sendCalibrateStatus(QVector<QString>{
 				" ",
-				"INValidImage",
-				QString::fromStdString(std::to_string(this->calibrate_para.PictureAmount - res) + "/" + std::to_string(this->calibrate_para.PictureAmount))});
+					"INValidImage",
+					QString::fromStdString(std::to_string(this->calibrate_para.PictureAmount - res) + "/" + std::to_string(this->calibrate_para.PictureAmount))});
 		}
 	}
 	//若标定完，显示结果并保存
