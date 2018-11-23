@@ -7,7 +7,8 @@ CalibDialog::CalibDialog(QWidget *parent) :
 	ui(new Ui::CalibDialog)
 {
 	ui->setupUi(this);
-	//ui->label->setScaledContents(true);
+	ui->calib_show_1->setScaledContents(true);
+	ui->calib_show_2->setScaledContents(true);
 }
 
 CalibDialog::~CalibDialog()
@@ -32,9 +33,9 @@ void CalibDialog::showCalibImage_2(QImage qImg)
 
 void CalibDialog::showCalibStatus(QVector<QString> calib_status)
 {
-	ui->calibration_tree->topLevelItem(0)->setText(0, calib_status[0]);
-	ui->calibration_tree->topLevelItem(0)->setText(1, calib_status[1]);
-	ui->calibration_tree->topLevelItem(0)->setText(2, calib_status[2]);
+	ui->calibration_tree->topLevelItem(0)->setText(1, calib_status[0]);
+	ui->calibration_tree->topLevelItem(0)->setText(2, calib_status[1]);
+	ui->calibration_tree->topLevelItem(0)->setText(3, calib_status[2]);
 }
 
 CaliParaSetDialog::CaliParaSetDialog(QWidget *parent) :

@@ -22,7 +22,7 @@ QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_MainWindow_t {
     QByteArrayData data[24];
-    char stringdata0[416];
+    char stringdata0[409];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -54,7 +54,7 @@ QT_MOC_LITERAL(19, 339, 11), // "showImage_2"
 QT_MOC_LITERAL(20, 351, 20), // "receiveCaliParameter"
 QT_MOC_LITERAL(21, 372, 13), // "CaliParameter"
 QT_MOC_LITERAL(22, 386, 9), // "cali_para"
-QT_MOC_LITERAL(23, 396, 19) // "continue_calib_func"
+QT_MOC_LITERAL(23, 396, 12) // "CalibAndShow"
 
     },
     "MainWindow\0on_set_1_clicked\0\0"
@@ -69,7 +69,7 @@ QT_MOC_LITERAL(23, 396, 19) // "continue_calib_func"
     "on_actionCalib_capture_triggered\0"
     "showImage_1\0qImg\0showImage_2\0"
     "receiveCaliParameter\0CaliParameter\0"
-    "cali_para\0continue_calib_func"
+    "cali_para\0CalibAndShow"
 };
 #undef QT_MOC_LITERAL
 
@@ -146,7 +146,7 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         case 12: _t->showImage_1((*reinterpret_cast< QImage(*)>(_a[1]))); break;
         case 13: _t->showImage_2((*reinterpret_cast< QImage(*)>(_a[1]))); break;
         case 14: _t->receiveCaliParameter((*reinterpret_cast< CaliParameter(*)>(_a[1]))); break;
-        case 15: _t->continue_calib_func(); break;
+        case 15: _t->CalibAndShow(); break;
         default: ;
         }
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {

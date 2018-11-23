@@ -30,8 +30,11 @@ int BaseCalibrator::Calibrate(void * img_ptr, cv::Mat &img_to_show)
 	//返回值：-1，角点识别错误，当前图像不合格，需重新选取
 	//0~N，剩余的标定的图像数目
 	if (m_RemainPicsToCalibrate == 0) return 0; //标定已结束
-	cv::Mat img(m_ImageSize.height, m_ImageSize.width, CV_8UC1, img_ptr);
+	cv::Mat img(m_ImageSize.height, m_ImageSize.width, CV_8UC1, (unsigned char *)img_ptr);
+	img_to_show = img;
 	std::vector<cv::Point2f> image_points_tmp;
+	image_points_tmp.resize(m_BoardSize.width*m_BoardSize.height);
+
 	switch (m_CalibrationBoardType)
 	{
 	case CircleGrid:
@@ -41,15 +44,15 @@ int BaseCalibrator::Calibrate(void * img_ptr, cv::Mat &img_to_show)
 		}
 		break;
 	case ChessBorad:
-		if (0 == findChessboardCorners(img, m_BoardSize, image_points_tmp))
+		if (0==findChessboardCorners(img, m_BoardSize, image_points_tmp, cv::CALIB_CB_ADAPTIVE_THRESH + cv::CALIB_CB_NORMALIZE_IMAGE + cv::CALIB_CB_FAST_CHECK))
 		{
 			return -1;  //找不到角点
 		}
 		else
 		{
 			/* 亚像素精确化 */
-			find4QuadCornerSubpix(img, image_points_tmp, m_BoardSize); //对粗提取的角点进行精确化
-			//cornerSubPix(view_gray,image_points_buf,Size(5,5),Size(-1,-1),TermCriteria(CV_TERMCRIT_EPS+CV_TERMCRIT_ITER,30,0.1));
+			//auto b=find4QuadCornerSubpix(img, image_points_tmp, m_BoardSize); //对粗提取的角点进行精确化
+			cv::cornerSubPix(img, image_points_tmp,cv::Size(11,11),cv::Size(-1,-1),cv::TermCriteria(CV_TERMCRIT_EPS+CV_TERMCRIT_ITER,30,0.1));
 		}
 		break;
 	default:
@@ -101,6 +104,31 @@ BaseCalibrateResult BaseCalibrator::GetBaseCalibrateResult()
 	return result;
 }
 
+CameraCalibrator::CameraCalibrator(bool left_camera, bool right_camera, size_t image_width, size_t image_height, size_t board_corner_width, size_t board_corner_height, size_t real_square_size, size_t calibration_pic_amount, CalibrationBoardType cali_board_type)
+{
+	if (left_camera&&right_camera)
+	{
+		m_Left = new BaseCalibrator(image_width, image_height, board_corner_width, board_corner_height, real_square_size, calibration_pic_amount, cali_board_type);
+		m_Right = new BaseCalibrator(image_width, image_height, board_corner_width, board_corner_height, real_square_size, calibration_pic_amount, cali_board_type);
+	}
+	else if (left_camera && !right_camera)
+	{
+		m_Left = new BaseCalibrator(image_width, image_height, board_corner_width, board_corner_height, real_square_size, calibration_pic_amount, cali_board_type);
+		m_Right = nullptr;
+	}
+	else if (!left_camera && right_camera)
+	{
+		m_Left = nullptr;
+		m_Right = new BaseCalibrator(image_width, image_height, board_corner_width, board_corner_height, real_square_size, calibration_pic_amount, cali_board_type);
+	}
+}
+
+CameraCalibrator::~CameraCalibrator()
+{
+	delete m_Left;
+	delete m_Right; 
+};
+
 int CameraCalibrator::Calibrate(void * left_img_ptr, cv::Mat &left_img_to_show, void * right_img_ptr, cv::Mat &right_img_to_show)
 {
 	//返回值：-1，角点识别错误，当前图像不合格，需重新选取
@@ -137,7 +165,8 @@ int CameraCalibrator::Calibrate(void * left_img_ptr, cv::Mat &left_img_to_show, 
 	}
 	else if(m_Left&&!m_Right)
 	{
-		return m_Left->Calibrate(left_img_ptr, left_img_to_show);
+		auto a= m_Left->Calibrate(left_img_ptr, left_img_to_show);
+		return a;
 	}
 	else if(!m_Left&&m_Right)
 	{

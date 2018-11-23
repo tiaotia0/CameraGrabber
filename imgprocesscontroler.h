@@ -40,31 +40,33 @@ class CameraCalibrateControler :public QObject, public CameraCalibrator
 	Q_OBJECT
 
 public:
-	CameraCalibrateControler(size_t image_width, size_t image_height, size_t board_corner_width, size_t board_corner_height, size_t real_square_size, size_t calibration_pic_amount, CalibrationBoardType cali_board_type):
-		CameraCalibrator(image_width, image_height, board_corner_width, board_corner_height, real_square_size, calibration_pic_amount, cali_board_type) ,
-		m_img_width(image_width),m_img_height(image_height){}
-
-	CameraCalibrateControler(void * no_left_cam, size_t image_width, size_t image_height, size_t board_corner_width, size_t board_corner_height, size_t real_square_size, size_t calibration_pic_amount, CalibrationBoardType cali_board_type) :
-		CameraCalibrator(no_left_cam, image_width, image_height, board_corner_width, board_corner_height, real_square_size, calibration_pic_amount, cali_board_type),
-		m_img_width(image_width), m_img_height(image_height) {}
-
-	CameraCalibrateControler(size_t image_width, size_t image_height, size_t board_corner_width, size_t board_corner_height, size_t real_square_size, size_t calibration_pic_amount, CalibrationBoardType cali_board_type, void * no_right_cam) :
-		CameraCalibrator(image_width, image_height, board_corner_width, board_corner_height, real_square_size, calibration_pic_amount, cali_board_type, no_right_cam),
-		m_img_width(image_width), m_img_height(image_height) {}
+	CameraCalibrateControler(bool left_camera, bool right_camera, size_t image_width, size_t image_height, size_t board_corner_width, size_t board_corner_height, size_t real_square_size, size_t calibration_pic_amount, CalibrationBoardType cali_board_type):
+		CameraCalibrator(left_camera, right_camera, image_width, image_height, board_corner_width, board_corner_height, real_square_size, calibration_pic_amount, cali_board_type) ,
+		m_img_width(image_width),m_img_height(image_height)
+	{
+		if (left_camera&&right_camera)
+		{
+			camera_amount = 2;
+		}
+		else
+		{
+			camera_amount = 1;
+		}
+	}
 
 	void * left_img_ptr = nullptr;
 	void * right_img_ptr = nullptr;
 	int m_img_width,
 		m_img_height;
+	size_t camera_amount;
 	QMutex calib_mtx;
-	size_t calib_img_count;
-	size_t camera_num = 0;
+	size_t collect_img_count;
 
 signals:
 	void sendLeftCalibImage(QImage qimg);
 	void sendRightCalibImage(QImage qimg);
 	void sendCalibrateStatus(QVector<QString> Qvec);
-	void continue_calib();
+	void SignalCalibrate();
 
 public slots:
 	void recieveLeftImage(void * img_ptr);

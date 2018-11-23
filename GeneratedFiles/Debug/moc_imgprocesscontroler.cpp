@@ -152,7 +152,7 @@ void ImageDisplayControler::sendDisplayImage(QImage _t1)
 }
 struct qt_meta_stringdata_CameraCalibrateControler_t {
     QByteArrayData data[12];
-    char stringdata0[170];
+    char stringdata0[171];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -169,15 +169,15 @@ QT_MOC_LITERAL(4, 50, 19), // "sendRightCalibImage"
 QT_MOC_LITERAL(5, 70, 19), // "sendCalibrateStatus"
 QT_MOC_LITERAL(6, 90, 16), // "QVector<QString>"
 QT_MOC_LITERAL(7, 107, 4), // "Qvec"
-QT_MOC_LITERAL(8, 112, 14), // "continue_calib"
-QT_MOC_LITERAL(9, 127, 16), // "recieveLeftImage"
-QT_MOC_LITERAL(10, 144, 7), // "img_ptr"
-QT_MOC_LITERAL(11, 152, 17) // "recieveRightImage"
+QT_MOC_LITERAL(8, 112, 15), // "SignalCalibrate"
+QT_MOC_LITERAL(9, 128, 16), // "recieveLeftImage"
+QT_MOC_LITERAL(10, 145, 7), // "img_ptr"
+QT_MOC_LITERAL(11, 153, 17) // "recieveRightImage"
 
     },
     "CameraCalibrateControler\0sendLeftCalibImage\0"
     "\0qimg\0sendRightCalibImage\0sendCalibrateStatus\0"
-    "QVector<QString>\0Qvec\0continue_calib\0"
+    "QVector<QString>\0Qvec\0SignalCalibrate\0"
     "recieveLeftImage\0img_ptr\0recieveRightImage"
 };
 #undef QT_MOC_LITERAL
@@ -227,7 +227,7 @@ void CameraCalibrateControler::qt_static_metacall(QObject *_o, QMetaObject::Call
         case 0: _t->sendLeftCalibImage((*reinterpret_cast< QImage(*)>(_a[1]))); break;
         case 1: _t->sendRightCalibImage((*reinterpret_cast< QImage(*)>(_a[1]))); break;
         case 2: _t->sendCalibrateStatus((*reinterpret_cast< QVector<QString>(*)>(_a[1]))); break;
-        case 3: _t->continue_calib(); break;
+        case 3: _t->SignalCalibrate(); break;
         case 4: _t->recieveLeftImage((*reinterpret_cast< void*(*)>(_a[1]))); break;
         case 5: _t->recieveRightImage((*reinterpret_cast< void*(*)>(_a[1]))); break;
         default: ;
@@ -269,7 +269,7 @@ void CameraCalibrateControler::qt_static_metacall(QObject *_o, QMetaObject::Call
         }
         {
             typedef void (CameraCalibrateControler::*_t)();
-            if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&CameraCalibrateControler::continue_calib)) {
+            if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&CameraCalibrateControler::SignalCalibrate)) {
                 *result = 3;
                 return;
             }
@@ -337,7 +337,7 @@ void CameraCalibrateControler::sendCalibrateStatus(QVector<QString> _t1)
 }
 
 // SIGNAL 3
-void CameraCalibrateControler::continue_calib()
+void CameraCalibrateControler::SignalCalibrate()
 {
     QMetaObject::activate(this, &staticMetaObject, 3, Q_NULLPTR);
 }

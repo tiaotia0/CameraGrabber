@@ -59,21 +59,10 @@ private:
 class CameraCalibrator
 {
 public:
-	CameraCalibrator(size_t image_width, size_t image_height, size_t board_corner_width, size_t board_corner_height, size_t real_square_size, size_t calibration_pic_amount, CalibrationBoardType cali_board_type):
-		m_Left(new BaseCalibrator(image_width,image_height,board_corner_width, board_corner_height, real_square_size, calibration_pic_amount, cali_board_type)),
-		m_Right(new BaseCalibrator(image_width, image_height, board_corner_width, board_corner_height, real_square_size, calibration_pic_amount, cali_board_type)){}
-
-	CameraCalibrator(void * no_left_camera, size_t image_width, size_t image_height, size_t board_corner_width, size_t board_corner_height, size_t real_square_size, size_t calibration_pic_amount, CalibrationBoardType cali_board_type):
-		m_Left(nullptr),
-		m_Right(new BaseCalibrator(image_width, image_height, board_corner_width, board_corner_height, real_square_size, calibration_pic_amount, cali_board_type)) {}
-
-	CameraCalibrator(size_t image_width, size_t image_height, size_t board_corner_width, size_t board_corner_height, size_t real_square_size, size_t calibration_pic_amount, CalibrationBoardType cali_board_type, void *no_right_camera) :
-		m_Left(new BaseCalibrator(image_width, image_height, board_corner_width, board_corner_height, real_square_size, calibration_pic_amount, cali_board_type)),
-		m_Right(nullptr){}
-
+	CameraCalibrator(bool left_camera, bool  right_camera, size_t image_width, size_t image_height, size_t board_corner_width, size_t board_corner_height, size_t real_square_size, size_t calibration_pic_amount, CalibrationBoardType cali_board_type);
+	~CameraCalibrator();
 	int Calibrate(void * left_img_ptr, cv::Mat &left_img_to_show, void * right_img_ptr, cv::Mat &right_img_to_show);
 	CameraCalibrateResult GetCalibrateResult();
-	~CameraCalibrator() {};
 private:
 	CameraCalibrator() {};
 	BaseCalibrator *m_Left, *m_Right;
