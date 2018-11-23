@@ -13,6 +13,7 @@
 #include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QButtonGroup>
+#include <QtWidgets/QGridLayout>
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
@@ -37,14 +38,18 @@ public:
     QAction *actionSetCalibPath;
     QAction *actionCalib_capture;
     QWidget *centralWidget;
+    QGridLayout *gridLayout;
     QGroupBox *groupBox;
+    QGridLayout *gridLayout_3;
     QLabel *displaywindow_1;
     QGroupBox *groupBox_2;
+    QGridLayout *gridLayout_2;
     QLabel *displaywindow_2;
     QGroupBox *groupBox_3;
-    QTreeWidget *parameter_tree;
     QPushButton *set_1;
     QPushButton *set_2;
+    QGridLayout *gridLayout_4;
+    QTreeWidget *parameter_tree;
     QLabel *label;
     QToolBar *mainToolBar;
 
@@ -52,7 +57,7 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QStringLiteral("MainWindow"));
-        MainWindow->resize(861, 642);
+        MainWindow->resize(866, 642);
         actionLoad = new QAction(MainWindow);
         actionLoad->setObjectName(QStringLiteral("actionLoad"));
         actionLoad->setCheckable(false);
@@ -99,21 +104,77 @@ public:
         actionCalib_capture->setIcon(icon6);
         centralWidget = new QWidget(MainWindow);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
+        gridLayout = new QGridLayout(centralWidget);
+        gridLayout->setSpacing(6);
+        gridLayout->setContentsMargins(11, 11, 11, 11);
+        gridLayout->setObjectName(QStringLiteral("gridLayout"));
         groupBox = new QGroupBox(centralWidget);
         groupBox->setObjectName(QStringLiteral("groupBox"));
-        groupBox->setGeometry(QRect(10, 10, 421, 421));
+        QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        sizePolicy.setHorizontalStretch(0);
+        sizePolicy.setVerticalStretch(0);
+        sizePolicy.setHeightForWidth(groupBox->sizePolicy().hasHeightForWidth());
+        groupBox->setSizePolicy(sizePolicy);
+        groupBox->setMinimumSize(QSize(421, 421));
+        gridLayout_3 = new QGridLayout(groupBox);
+        gridLayout_3->setSpacing(6);
+        gridLayout_3->setContentsMargins(11, 11, 11, 11);
+        gridLayout_3->setObjectName(QStringLiteral("gridLayout_3"));
         displaywindow_1 = new QLabel(groupBox);
         displaywindow_1->setObjectName(QStringLiteral("displaywindow_1"));
-        displaywindow_1->setGeometry(QRect(10, 20, 401, 391));
+        sizePolicy.setHeightForWidth(displaywindow_1->sizePolicy().hasHeightForWidth());
+        displaywindow_1->setSizePolicy(sizePolicy);
+        displaywindow_1->setMinimumSize(QSize(401, 391));
+        displaywindow_1->setAutoFillBackground(false);
+
+        gridLayout_3->addWidget(displaywindow_1, 0, 0, 1, 1);
+
+
+        gridLayout->addWidget(groupBox, 0, 0, 1, 1);
+
         groupBox_2 = new QGroupBox(centralWidget);
         groupBox_2->setObjectName(QStringLiteral("groupBox_2"));
-        groupBox_2->setGeometry(QRect(430, 10, 421, 421));
+        sizePolicy.setHeightForWidth(groupBox_2->sizePolicy().hasHeightForWidth());
+        groupBox_2->setSizePolicy(sizePolicy);
+        groupBox_2->setMinimumSize(QSize(421, 421));
+        gridLayout_2 = new QGridLayout(groupBox_2);
+        gridLayout_2->setSpacing(6);
+        gridLayout_2->setContentsMargins(11, 11, 11, 11);
+        gridLayout_2->setObjectName(QStringLiteral("gridLayout_2"));
         displaywindow_2 = new QLabel(groupBox_2);
         displaywindow_2->setObjectName(QStringLiteral("displaywindow_2"));
-        displaywindow_2->setGeometry(QRect(10, 20, 401, 391));
+        sizePolicy.setHeightForWidth(displaywindow_2->sizePolicy().hasHeightForWidth());
+        displaywindow_2->setSizePolicy(sizePolicy);
+        displaywindow_2->setMinimumSize(QSize(401, 391));
+        displaywindow_2->setAutoFillBackground(false);
+
+        gridLayout_2->addWidget(displaywindow_2, 0, 0, 1, 1);
+
+
+        gridLayout->addWidget(groupBox_2, 0, 1, 1, 1);
+
         groupBox_3 = new QGroupBox(centralWidget);
         groupBox_3->setObjectName(QStringLiteral("groupBox_3"));
-        groupBox_3->setGeometry(QRect(10, 430, 841, 131));
+        groupBox_3->setMinimumSize(QSize(841, 131));
+        groupBox_3->setMaximumSize(QSize(16777215, 131));
+        set_1 = new QPushButton(groupBox_3);
+        set_1->setObjectName(QStringLiteral("set_1"));
+        set_1->setEnabled(false);
+        set_1->setGeometry(QRect(730, 40, 51, 41));
+        QIcon icon7;
+        icon7.addFile(QStringLiteral(":/new/iocn/resources/upload_para1.ico"), QSize(), QIcon::Normal, QIcon::Off);
+        set_1->setIcon(icon7);
+        set_1->setIconSize(QSize(20, 20));
+        set_2 = new QPushButton(groupBox_3);
+        set_2->setObjectName(QStringLiteral("set_2"));
+        set_2->setEnabled(false);
+        set_2->setGeometry(QRect(730, 80, 51, 41));
+        set_2->setIcon(icon7);
+        set_2->setIconSize(QSize(20, 20));
+        gridLayout_4 = new QGridLayout(groupBox_3);
+        gridLayout_4->setSpacing(6);
+        gridLayout_4->setContentsMargins(11, 11, 11, 11);
+        gridLayout_4->setObjectName(QStringLiteral("gridLayout_4"));
         parameter_tree = new QTreeWidget(groupBox_3);
         QTreeWidgetItem *__qtreewidgetitem = new QTreeWidgetItem();
         __qtreewidgetitem->setTextAlignment(10, Qt::AlignCenter);
@@ -150,30 +211,30 @@ public:
         __qtreewidgetitem2->setTextAlignment(1, Qt::AlignCenter);
         parameter_tree->setObjectName(QStringLiteral("parameter_tree"));
         parameter_tree->setEnabled(true);
-        parameter_tree->setGeometry(QRect(10, 20, 821, 101));
+        QSizePolicy sizePolicy1(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        sizePolicy1.setHorizontalStretch(0);
+        sizePolicy1.setVerticalStretch(0);
+        sizePolicy1.setHeightForWidth(parameter_tree->sizePolicy().hasHeightForWidth());
+        parameter_tree->setSizePolicy(sizePolicy1);
+        parameter_tree->setMinimumSize(QSize(821, 101));
+        parameter_tree->setMaximumSize(QSize(16777215, 101));
         parameter_tree->setEditTriggers(QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed);
         parameter_tree->setIndentation(0);
         parameter_tree->setExpandsOnDoubleClick(true);
         parameter_tree->setColumnCount(11);
         parameter_tree->header()->setDefaultSectionSize(70);
         parameter_tree->header()->setStretchLastSection(false);
-        set_1 = new QPushButton(groupBox_3);
-        set_1->setObjectName(QStringLiteral("set_1"));
-        set_1->setEnabled(false);
-        set_1->setGeometry(QRect(730, 40, 51, 41));
-        QIcon icon7;
-        icon7.addFile(QStringLiteral(":/new/iocn/resources/upload_para1.ico"), QSize(), QIcon::Normal, QIcon::Off);
-        set_1->setIcon(icon7);
-        set_1->setIconSize(QSize(20, 20));
-        set_2 = new QPushButton(groupBox_3);
-        set_2->setObjectName(QStringLiteral("set_2"));
-        set_2->setEnabled(false);
-        set_2->setGeometry(QRect(730, 80, 51, 41));
-        set_2->setIcon(icon7);
-        set_2->setIconSize(QSize(20, 20));
+
+        gridLayout_4->addWidget(parameter_tree, 0, 0, 1, 1);
+
+
+        gridLayout->addWidget(groupBox_3, 1, 0, 1, 2);
+
         label = new QLabel(centralWidget);
         label->setObjectName(QStringLiteral("label"));
-        label->setGeometry(QRect(20, 580, 54, 12));
+
+        gridLayout->addWidget(label, 2, 0, 1, 1);
+
         MainWindow->setCentralWidget(centralWidget);
         mainToolBar = new QToolBar(MainWindow);
         mainToolBar->setObjectName(QStringLiteral("mainToolBar"));
@@ -218,6 +279,8 @@ public:
         groupBox_2->setTitle(QApplication::translate("MainWindow", "Camera_2", Q_NULLPTR));
         displaywindow_2->setText(QString());
         groupBox_3->setTitle(QApplication::translate("MainWindow", "Camera Parameters Setting", Q_NULLPTR));
+        set_1->setText(QString());
+        set_2->setText(QString());
         QTreeWidgetItem *___qtreewidgetitem = parameter_tree->headerItem();
         ___qtreewidgetitem->setText(10, QApplication::translate("MainWindow", "Set", Q_NULLPTR));
         ___qtreewidgetitem->setText(9, QApplication::translate("MainWindow", "   CL freq   ", Q_NULLPTR));
@@ -239,8 +302,6 @@ public:
         ___qtreewidgetitem2->setText(0, QApplication::translate("MainWindow", "Camera_2", Q_NULLPTR));
         parameter_tree->setSortingEnabled(__sortingEnabled);
 
-        set_1->setText(QString());
-        set_2->setText(QString());
         label->setText(QApplication::translate("MainWindow", "Console", Q_NULLPTR));
     } // retranslateUi
 

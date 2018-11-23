@@ -31,7 +31,6 @@ int BaseCalibrator::Calibrate(void * img_ptr, cv::Mat &img_to_show)
 	//0~N，剩余的标定的图像数目
 	if (m_RemainPicsToCalibrate == 0) return 0; //标定已结束
 	cv::Mat img(m_ImageSize.height, m_ImageSize.width, CV_8UC1, (unsigned char *)img_ptr);
-	img_to_show = img;
 	std::vector<cv::Point2f> image_points_tmp;
 	image_points_tmp.resize(m_BoardSize.width*m_BoardSize.height);
 
@@ -60,8 +59,14 @@ int BaseCalibrator::Calibrate(void * img_ptr, cv::Mat &img_to_show)
 		break;
 	}
 	m_ImageCorners_seq.push_back(image_points_tmp);  //保存亚像素角点
-			/* 在图像上显示角点位置 */
-	drawChessboardCorners(img_to_show, m_BoardSize, image_points_tmp, true); //用于在图片中标记角点
+	/* 在图像上显示角点位置 */
+	//将单通道图像转换成3通道，以显示彩色的识别标定角点
+	cv::Mat three_channel = cv::Mat::zeros(img.rows, img.cols, CV_8UC3);
+	vector<cv::Mat> channels = { img ,img ,img };
+	merge(channels, three_channel);
+	drawChessboardCorners(three_channel, m_BoardSize, image_points_tmp, true); //用于在图片中标记角点
+	img_to_show = three_channel;
+
 	m_RemainPicsToCalibrate = m_RemainPicsToCalibrate > 0 ? m_RemainPicsToCalibrate - 1 : 0;
 	if (m_RemainPicsToCalibrate == 0)
 	{

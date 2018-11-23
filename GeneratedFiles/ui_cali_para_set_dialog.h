@@ -111,9 +111,9 @@ public:
     {
         CaliParaSetDialog->setWindowTitle(QApplication::translate("CaliParaSetDialog", "Dialog", Q_NULLPTR));
         label->setText(QApplication::translate("CaliParaSetDialog", "CornerAmountAlongWidth", Q_NULLPTR));
-        CornerAmountAlongWidth->setText(QApplication::translate("CaliParaSetDialog", "0", Q_NULLPTR));
+        CornerAmountAlongWidth->setText(QApplication::translate("CaliParaSetDialog", "9", Q_NULLPTR));
         label_2->setText(QApplication::translate("CaliParaSetDialog", "CornerAmountAlongHeight", Q_NULLPTR));
-        CornerAmountAlongHeight->setText(QApplication::translate("CaliParaSetDialog", "0", Q_NULLPTR));
+        CornerAmountAlongHeight->setText(QApplication::translate("CaliParaSetDialog", "6", Q_NULLPTR));
         label_3->setText(QApplication::translate("CaliParaSetDialog", "DistanceBetweenCorners", Q_NULLPTR));
         DistanceBetweenCorners->setText(QApplication::translate("CaliParaSetDialog", "0", Q_NULLPTR));
         label_4->setText(QApplication::translate("CaliParaSetDialog", "PictureAmount", Q_NULLPTR));

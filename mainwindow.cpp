@@ -464,8 +464,19 @@ void MainWindow::CalibAndShow()
 		res = calibrator_ptr->Calibrate(calibrator_ptr->left_img_ptr, cvLeftImg, calibrator_ptr->right_img_ptr, cvRightImg);
 		if (res >= 0)
 		{
-			qLeftImg = QImage(cvLeftImg.data, calibrator_ptr->m_img_width, calibrator_ptr->m_img_height, QImage::Format_Indexed8);
-			qRightImg = QImage(cvRightImg.data, calibrator_ptr->m_img_width, calibrator_ptr->m_img_height, QImage::Format_Indexed8);
+			static int cnt = 0;
+			QImage left_to_save = QImage((unsigned char*)calibrator_ptr->left_img_ptr, calibrator_ptr->m_img_width, calibrator_ptr->m_img_height, QImage::Format_Indexed8);
+			left_to_save.setColorTable(cvt.GetGray8bitQImageCorlorTable());
+			QImage right_to_save = QImage((unsigned char*)calibrator_ptr->right_img_ptr, calibrator_ptr->m_img_width, calibrator_ptr->m_img_height, QImage::Format_Indexed8);
+			right_to_save.setColorTable(cvt.GetGray8bitQImageCorlorTable());
+			std::string string_1 = std::string("C:\\Users\\GKJ\\Desktop\\camera1\\") + std::to_string(cnt) + ".tiff";
+			left_to_save.save(string_1.c_str());
+
+			std::string string_2 = std::string("C:\\Users\\GKJ\\Desktop\\camera2\\") + std::to_string(cnt) + ".tiff";
+			right_to_save.save(string_2.c_str());
+			cnt++;
+			qLeftImg = QImage(cvLeftImg.data, calibrator_ptr->m_img_width, calibrator_ptr->m_img_height, QImage::Format_RGB888);
+			qRightImg = QImage(cvRightImg.data, calibrator_ptr->m_img_width, calibrator_ptr->m_img_height, QImage::Format_RGB888);
 			qLeftImg.setColorTable(cvt.GetGray8bitQImageCorlorTable());
 			qRightImg.setColorTable(cvt.GetGray8bitQImageCorlorTable());
 
@@ -489,7 +500,7 @@ void MainWindow::CalibAndShow()
 		res = calibrator_ptr->Calibrate(calibrator_ptr->left_img_ptr, cvLeftImg, nullptr, cvRightImg);
 		if (res >= 0)
 		{
-			qLeftImg = QImage(cvLeftImg.data, calibrator_ptr->m_img_width, calibrator_ptr->m_img_height, QImage::Format_Indexed8);
+			qLeftImg = QImage(cvLeftImg.data, calibrator_ptr->m_img_width, calibrator_ptr->m_img_height, QImage::Format_RGB888);
 			qLeftImg.setColorTable(cvt.GetGray8bitQImageCorlorTable());
 
 			emit calibrator_ptr->sendLeftCalibImage(qLeftImg);
@@ -512,7 +523,7 @@ void MainWindow::CalibAndShow()
 		res = calibrator_ptr->Calibrate(nullptr, cvLeftImg, calibrator_ptr->right_img_ptr, cvRightImg);
 		if (res >= 0)
 		{
-			qRightImg = QImage(cvRightImg.data, calibrator_ptr->m_img_width, calibrator_ptr->m_img_height, QImage::Format_Indexed8);
+			qRightImg = QImage(cvRightImg.data, calibrator_ptr->m_img_width, calibrator_ptr->m_img_height, QImage::Format_RGB888);
 			qRightImg.setColorTable(cvt.GetGray8bitQImageCorlorTable());
 
 			emit calibrator_ptr->sendRightCalibImage(qRightImg);
