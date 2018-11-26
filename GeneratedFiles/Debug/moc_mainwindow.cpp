@@ -22,7 +22,7 @@ QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_MainWindow_t {
     QByteArrayData data[24];
-    char stringdata0[415];
+    char stringdata0[421];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -43,18 +43,18 @@ QT_MOC_LITERAL(8, 86, 11), // "closeEditor"
 QT_MOC_LITERAL(9, 98, 23), // "on_actionLoad_triggered"
 QT_MOC_LITERAL(10, 122, 23), // "on_actionPlay_triggered"
 QT_MOC_LITERAL(11, 146, 37), // "on_actionSetImageRecordPath_t..."
-QT_MOC_LITERAL(12, 184, 31), // "on_actionSetCalibPath_triggered"
-QT_MOC_LITERAL(13, 216, 23), // "on_actionStop_triggered"
-QT_MOC_LITERAL(14, 240, 25), // "on_actionRecord_triggered"
-QT_MOC_LITERAL(15, 266, 28), // "on_actionCalibrate_triggered"
-QT_MOC_LITERAL(16, 295, 32), // "on_actionCalib_capture_triggered"
-QT_MOC_LITERAL(17, 328, 11), // "showImage_1"
-QT_MOC_LITERAL(18, 340, 4), // "qImg"
-QT_MOC_LITERAL(19, 345, 11), // "showImage_2"
-QT_MOC_LITERAL(20, 357, 20), // "receiveCaliParameter"
-QT_MOC_LITERAL(21, 378, 13), // "CaliParameter"
-QT_MOC_LITERAL(22, 392, 9), // "cali_para"
-QT_MOC_LITERAL(23, 402, 12) // "CalibAndShow"
+QT_MOC_LITERAL(12, 184, 37), // "on_actionSetCalibrationPath_t..."
+QT_MOC_LITERAL(13, 222, 23), // "on_actionStop_triggered"
+QT_MOC_LITERAL(14, 246, 25), // "on_actionRecord_triggered"
+QT_MOC_LITERAL(15, 272, 28), // "on_actionCalibrate_triggered"
+QT_MOC_LITERAL(16, 301, 32), // "on_actionCalib_capture_triggered"
+QT_MOC_LITERAL(17, 334, 11), // "showImage_1"
+QT_MOC_LITERAL(18, 346, 4), // "qImg"
+QT_MOC_LITERAL(19, 351, 11), // "showImage_2"
+QT_MOC_LITERAL(20, 363, 20), // "receiveCaliParameter"
+QT_MOC_LITERAL(21, 384, 13), // "CaliParameter"
+QT_MOC_LITERAL(22, 398, 9), // "cali_para"
+QT_MOC_LITERAL(23, 408, 12) // "CalibAndShow"
 
     },
     "MainWindow\0on_set_1_clicked\0\0"
@@ -62,7 +62,7 @@ QT_MOC_LITERAL(23, 402, 12) // "CalibAndShow"
     "QTreeWidgetItem*\0item\0column\0closeEditor\0"
     "on_actionLoad_triggered\0on_actionPlay_triggered\0"
     "on_actionSetImageRecordPath_triggered\0"
-    "on_actionSetCalibPath_triggered\0"
+    "on_actionSetCalibrationPath_triggered\0"
     "on_actionStop_triggered\0"
     "on_actionRecord_triggered\0"
     "on_actionCalibrate_triggered\0"
@@ -138,7 +138,7 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         case 4: _t->on_actionLoad_triggered(); break;
         case 5: _t->on_actionPlay_triggered(); break;
         case 6: _t->on_actionSetImageRecordPath_triggered(); break;
-        case 7: _t->on_actionSetCalibPath_triggered(); break;
+        case 7: _t->on_actionSetCalibrationPath_triggered(); break;
         case 8: _t->on_actionStop_triggered(); break;
         case 9: _t->on_actionRecord_triggered(); break;
         case 10: _t->on_actionCalibrate_triggered(); break;

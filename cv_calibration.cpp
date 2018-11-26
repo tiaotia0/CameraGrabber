@@ -1,6 +1,6 @@
 #include"cv_calibration.h"
 
-BaseCalibrator::BaseCalibrator(size_t image_width, size_t image_height, size_t board_corner_width, size_t board_corner_height, size_t real_square_size, size_t calibration_pic_amount, CalibrationBoardType cali_board_type)
+BaseCalibrator::BaseCalibrator(size_t image_width, size_t image_height, size_t board_corner_width, size_t board_corner_height, double real_square_size, size_t calibration_pic_amount, CalibrationBoardType cali_board_type)
 {
 	m_CalibrationBoardType = cali_board_type;
 	m_ImageSize = cv::Size(image_width, image_height);
@@ -24,7 +24,7 @@ BaseCalibrator::BaseCalibrator(size_t image_width, size_t image_height, size_t b
 			for (int j = 0; j < m_BoardSize.width; j++)
 			{
 				/* 假设标定板放在世界坐标系中z=0的平面上 */
-				tempPointSet.push_back(cv::Point3f(float(j * m_SquareSize.width), float(i * m_SquareSize.height), 0));
+				tempPointSet.push_back(cv::Point3f(double(j * m_SquareSize.width), double(i * m_SquareSize.height), 0));
 			}
 		}
 		m_RealObjectPoints_of_AllImages[cnt] = tempPointSet;
@@ -116,7 +116,7 @@ BaseCalibrateResult BaseCalibrator::GetBaseCalibrateResult()
 	return result;
 }
 
-CameraCalibrator::CameraCalibrator(bool left_camera, bool right_camera, size_t image_width, size_t image_height, size_t board_corner_width, size_t board_corner_height, size_t real_square_size, size_t calibration_pic_amount, CalibrationBoardType cali_board_type)
+CameraCalibrator::CameraCalibrator(bool left_camera, bool right_camera, size_t image_width, size_t image_height, size_t board_corner_width, size_t board_corner_height, double real_square_size, size_t calibration_pic_amount, CalibrationBoardType cali_board_type)
 {
 	if (left_camera&&right_camera)
 	{

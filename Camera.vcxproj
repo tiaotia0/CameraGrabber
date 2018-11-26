@@ -68,6 +68,10 @@
     <IncludePath>D:\opencv\build\include\opencv2;D:\opencv\build\include\opencv;D:\opencv\build\include;$(IncludePath)</IncludePath>
     <LibraryPath>D:\opencv\build\x86\vc12\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>D:\opencv\build\include\opencv2;D:\opencv\build\include\opencv;D:\opencv\build\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\opencv\build\x86\vc12\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;.;include;D:\Qt\Qt5.8.0\5.8\msvc2015\include;D:\Qt\Qt5.8.0\5.8\msvc2015\include\QtWidgets;D:\Qt\Qt5.8.0\5.8\msvc2015\include\QtGui;D:\Qt\Qt5.8.0\5.8\msvc2015\include\QtANGLE;D:\Qt\Qt5.8.0\5.8\msvc2015\include\QtCore;release;D:\Qt\Qt5.8.0\5.8\msvc2015\mkspecs\win32-msvc2015;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -90,7 +94,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(QTDIR)\lib\D:\Qt\Qt5.8.0\5.8\msvc2015\lib\qtmain.lib;shell32.lib;.\lib\fglib5.lib;.\lib\clsersis.lib;$(QTDIR)\lib\D:\Qt\Qt5.8.0\5.8\msvc2015\lib\Qt5Widgets.lib;$(QTDIR)\lib\D:\Qt\Qt5.8.0\5.8\msvc2015\lib\Qt5Gui.lib;$(QTDIR)\lib\D:\Qt\Qt5.8.0\5.8\msvc2015\lib\Qt5Core.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>D:\Qt\Qt5.8.0\5.8\msvc2015\lib\qtmain.lib;shell32.lib;.\lib\fglib5.lib;.\lib\clsersis.lib;D:\Qt\Qt5.8.0\5.8\msvc2015\lib\Qt5Widgets.lib;D:\Qt\Qt5.8.0\5.8\msvc2015\lib\Qt5Gui.lib;D:\Qt\Qt5.8.0\5.8\msvc2015\lib\Qt5Core.lib;opencv_world300.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>D:\Qt\Qt5.8.0\5.8\msvc2015\lib;C:\utils\my_sql\my_sql\lib;C:\utils\postgresql\pgsql\lib;D:\Qt\Qt5.8.0\5.8\msvc2015\lib;.\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>"/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'" %(AdditionalOptions)</AdditionalOptions>
       <DataExecutionPrevention>true</DataExecutionPrevention>

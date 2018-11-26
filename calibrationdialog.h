@@ -8,7 +8,7 @@ struct CaliParameter
 {
 	int CornerAmountAlongWidth;
 	int CornerAmountAlongHeight;
-	int DistanceBetweenCorners;
+	double DistanceBetweenCorners;
 	int PictureAmount;
 	int CalibrationBoardType;
 };

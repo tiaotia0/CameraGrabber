@@ -41,7 +41,7 @@ private slots:
     void on_actionLoad_triggered();
     void on_actionPlay_triggered();
     void on_actionSetImageRecordPath_triggered();
-	void on_actionSetCalibPath_triggered();
+	void on_actionSetCalibrationPath_triggered();
     void on_actionStop_triggered();
     void on_actionRecord_triggered();
 	void on_actionCalibrate_triggered();

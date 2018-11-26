@@ -405,7 +405,7 @@ void MainWindow::receiveCaliParameter(CaliParameter cali_para)
 	}
 }
 
-void MainWindow::on_actionSetCalibPath_triggered()
+void MainWindow::on_actionSetCalibrationPath_triggered()
 {
     QString fileName = QFileDialog::getExistingDirectory(this, "Save Calibration Path");
 

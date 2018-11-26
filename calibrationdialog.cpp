@@ -56,7 +56,7 @@ void CaliParaSetDialog::on_cali_set_btn_clicked()
 	CaliParameter cali_para;
 	cali_para.CornerAmountAlongWidth = ui->CornerAmountAlongWidth->text().toInt();
 	cali_para.CornerAmountAlongHeight = ui->CornerAmountAlongHeight->text().toInt();
-	cali_para.DistanceBetweenCorners = ui->DistanceBetweenCorners->text().toInt();
+	cali_para.DistanceBetweenCorners = ui->DistanceBetweenCorners->text().toDouble();
 	cali_para.PictureAmount = ui->PictureAmount->text().toInt();
 	cali_para.CalibrationBoardType = 0;
 	if (ui->CalibrationBoardType->currentText() == "CircleGrid")

@@ -35,7 +35,7 @@ class BaseCalibrator
 friend class CameraCalibrator;
 private:
 	BaseCalibrator() {};
-	BaseCalibrator(size_t image_width, size_t image_height, size_t board_corner_width, size_t board_corner_height, size_t real_square_size, size_t calibration_pic_amount, CalibrationBoardType cali_board_type);
+	BaseCalibrator(size_t image_width, size_t image_height, size_t board_corner_width, size_t board_corner_height, double real_square_size, size_t calibration_pic_amount, CalibrationBoardType cali_board_type);
 
 	int Calibrate(void * img_ptr, cv::Mat &img_to_show);
 	BaseCalibrateResult GetBaseCalibrateResult();
@@ -60,7 +60,7 @@ private:
 class CameraCalibrator
 {
 public:
-	CameraCalibrator(bool right_camera, bool left_camera, size_t image_width, size_t image_height, size_t board_corner_width, size_t board_corner_height, size_t real_square_size, size_t calibration_pic_amount, CalibrationBoardType cali_board_type);
+	CameraCalibrator(bool right_camera, bool left_camera, size_t image_width, size_t image_height, size_t board_corner_width, size_t board_corner_height, double real_square_size, size_t calibration_pic_amount, CalibrationBoardType cali_board_type);
 	~CameraCalibrator();
 	int Calibrate(void * left_img_ptr, cv::Mat &left_img_to_show, void * right_img_ptr, cv::Mat &right_img_to_show);
 	CameraCalibrateResult GetCalibrateResult();
