@@ -456,14 +456,14 @@
    </attribute>
    <addaction name="actionLoad"/>
    <addaction name="actionPlay"/>
-   <addaction name="actionSetImagePath"/>
+   <addaction name="actionSetImageRecordPath"/>
    <addaction name="actionRecord"/>
    <addaction name="actionStop"/>
    <addaction name="separator"/>
    <addaction name="actionblank_icon"/>
    <addaction name="separator"/>
    <addaction name="actionCalibrate"/>
-   <addaction name="actionSetCalibPath"/>
+   <addaction name="actionSetCalibrationPath"/>
    <addaction name="actionCalib_capture"/>
   </widget>
   <action name="actionLoad">
@@ -514,16 +514,19 @@
     <string>Stop</string>
    </property>
   </action>
-  <action name="actionSetImagePath">
+  <action name="actionSetImageRecordPath">
    <property name="icon">
     <iconset>
      <normaloff>:/new/iocn/resources/archive.ico</normaloff>:/new/iocn/resources/archive.ico</iconset>
    </property>
    <property name="text">
-    <string>SetImagePath</string>
+    <string>SetImageRecordPath</string>
    </property>
   </action>
   <action name="actionCalibrate">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset>
      <normaloff>:/new/iocn/resources/calibration.ico</normaloff>:/new/iocn/resources/calibration.ico</iconset>
@@ -537,13 +540,13 @@
     <string/>
    </property>
   </action>
-  <action name="actionSetCalibPath">
+  <action name="actionSetCalibrationPath">
    <property name="icon">
     <iconset>
      <normaloff>:/new/iocn/resources/archive.ico</normaloff>:/new/iocn/resources/archive.ico</iconset>
    </property>
    <property name="text">
-    <string>SetCalibPath</string>
+    <string>SetCalibrationPath</string>
    </property>
   </action>
   <action name="actionCalib_capture">
@@ -552,7 +555,7 @@
      <normaloff>:/new/iocn/resources/capture.ico</normaloff>:/new/iocn/resources/capture.ico</iconset>
    </property>
    <property name="text">
-    <string>calib_capture</string>
+    <string>Calib_capture</string>
    </property>
   </action>
  </widget>

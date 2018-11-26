@@ -32,10 +32,10 @@ public:
     QAction *actionPlay;
     QAction *actionRecord;
     QAction *actionStop;
-    QAction *actionSetImagePath;
+    QAction *actionSetImageRecordPath;
     QAction *actionCalibrate;
     QAction *actionblank_icon;
-    QAction *actionSetCalibPath;
+    QAction *actionSetCalibrationPath;
     QAction *actionCalib_capture;
     QWidget *centralWidget;
     QGridLayout *gridLayout;
@@ -82,21 +82,22 @@ public:
         QIcon icon3;
         icon3.addFile(QStringLiteral(":/new/iocn/resources/stop1.ico"), QSize(), QIcon::Normal, QIcon::Off);
         actionStop->setIcon(icon3);
-        actionSetImagePath = new QAction(MainWindow);
-        actionSetImagePath->setObjectName(QStringLiteral("actionSetImagePath"));
+        actionSetImageRecordPath = new QAction(MainWindow);
+        actionSetImageRecordPath->setObjectName(QStringLiteral("actionSetImageRecordPath"));
         QIcon icon4;
         icon4.addFile(QStringLiteral(":/new/iocn/resources/archive.ico"), QSize(), QIcon::Normal, QIcon::Off);
-        actionSetImagePath->setIcon(icon4);
+        actionSetImageRecordPath->setIcon(icon4);
         actionCalibrate = new QAction(MainWindow);
         actionCalibrate->setObjectName(QStringLiteral("actionCalibrate"));
+        actionCalibrate->setEnabled(false);
         QIcon icon5;
         icon5.addFile(QStringLiteral(":/new/iocn/resources/calibration.ico"), QSize(), QIcon::Normal, QIcon::Off);
         actionCalibrate->setIcon(icon5);
         actionblank_icon = new QAction(MainWindow);
         actionblank_icon->setObjectName(QStringLiteral("actionblank_icon"));
-        actionSetCalibPath = new QAction(MainWindow);
-        actionSetCalibPath->setObjectName(QStringLiteral("actionSetCalibPath"));
-        actionSetCalibPath->setIcon(icon4);
+        actionSetCalibrationPath = new QAction(MainWindow);
+        actionSetCalibrationPath->setObjectName(QStringLiteral("actionSetCalibrationPath"));
+        actionSetCalibrationPath->setIcon(icon4);
         actionCalib_capture = new QAction(MainWindow);
         actionCalib_capture->setObjectName(QStringLiteral("actionCalib_capture"));
         QIcon icon6;
@@ -244,14 +245,14 @@ public:
 
         mainToolBar->addAction(actionLoad);
         mainToolBar->addAction(actionPlay);
-        mainToolBar->addAction(actionSetImagePath);
+        mainToolBar->addAction(actionSetImageRecordPath);
         mainToolBar->addAction(actionRecord);
         mainToolBar->addAction(actionStop);
         mainToolBar->addSeparator();
         mainToolBar->addAction(actionblank_icon);
         mainToolBar->addSeparator();
         mainToolBar->addAction(actionCalibrate);
-        mainToolBar->addAction(actionSetCalibPath);
+        mainToolBar->addAction(actionSetCalibrationPath);
         mainToolBar->addAction(actionCalib_capture);
 
         retranslateUi(MainWindow);
@@ -269,11 +270,11 @@ public:
         actionRecord->setToolTip(QApplication::translate("MainWindow", "Record", Q_NULLPTR));
 #endif // QT_NO_TOOLTIP
         actionStop->setText(QApplication::translate("MainWindow", "Stop", Q_NULLPTR));
-        actionSetImagePath->setText(QApplication::translate("MainWindow", "SetImagePath", Q_NULLPTR));
+        actionSetImageRecordPath->setText(QApplication::translate("MainWindow", "SetImageRecordPath", Q_NULLPTR));
         actionCalibrate->setText(QApplication::translate("MainWindow", "Calibrate", Q_NULLPTR));
         actionblank_icon->setText(QString());
-        actionSetCalibPath->setText(QApplication::translate("MainWindow", "SetCalibPath", Q_NULLPTR));
-        actionCalib_capture->setText(QApplication::translate("MainWindow", "calib_capture", Q_NULLPTR));
+        actionSetCalibrationPath->setText(QApplication::translate("MainWindow", "SetCalibrationPath", Q_NULLPTR));
+        actionCalib_capture->setText(QApplication::translate("MainWindow", "Calib_capture", Q_NULLPTR));
         groupBox->setTitle(QApplication::translate("MainWindow", "Camera_1", Q_NULLPTR));
         displaywindow_1->setText(QString());
         groupBox_2->setTitle(QApplication::translate("MainWindow", "Camera_2", Q_NULLPTR));

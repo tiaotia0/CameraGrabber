@@ -66,11 +66,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	ui->actionLoad->setDisabled(false);
 	ui->actionPlay->setDisabled(true);
-	ui->actionSetImagePath->setDisabled(true);
+	ui->actionSetImageRecordPath->setDisabled(true);
 	ui->actionRecord->setDisabled(true);
 	ui->actionStop->setDisabled(true);
 	ui->actionCalibrate->setDisabled(true);
-	ui->actionSetCalibPath->setDisabled(true);
+	ui->actionSetCalibrationPath->setDisabled(true);
 	ui->actionCalib_capture->setDisabled(true);
 
 }
@@ -258,9 +258,11 @@ void MainWindow::showImage_2(QImage qImg)
 void MainWindow::on_actionPlay_triggered()
 {
 	ui->actionPlay->setDisabled(true);
-	ui->actionSetImagePath->setDisabled(false);
+	ui->actionSetImageRecordPath->setDisabled(false);
 	ui->actionStop->setDisabled(false);
 	ui->actionCalibrate->setDisabled(false);
+	ui->parameter_tree->setEnabled(false);
+
     for (auto & item: image_control_ptr_vec)
     {
         if (item == nullptr) continue;
@@ -274,7 +276,7 @@ void MainWindow::on_actionPlay_triggered()
     }
 }
 
-void MainWindow::on_actionSetImagePath_triggered()
+void MainWindow::on_actionSetImageRecordPath_triggered()
 {
     QString fileName = QFileDialog::getExistingDirectory(this, "Save Image Path");
     if (!fileName.isNull())
@@ -290,7 +292,7 @@ void MainWindow::on_actionSetImagePath_triggered()
 void MainWindow::on_actionRecord_triggered()
 {
 	ui->actionPlay->setDisabled(true);
-	ui->actionSetImagePath->setDisabled(true);
+	ui->actionSetImageRecordPath->setDisabled(true);
 	ui->actionRecord->setDisabled(true);
 	ui->actionStop->setDisabled(false);
     for (int i=0;i<image_control_ptr_vec.size();i++)
@@ -316,9 +318,13 @@ void MainWindow::on_actionRecord_triggered()
 void MainWindow::on_actionStop_triggered()
 {
 	ui->actionPlay->setDisabled(false);
-	ui->actionSetImagePath->setDisabled(true);
+	ui->actionSetImageRecordPath->setDisabled(true);
 	ui->actionRecord->setDisabled(true);
 	ui->actionStop->setDisabled(true);
+	ui->parameter_tree->setEnabled(true);
+	ui->actionCalibrate->setDisabled(true);
+	ui->actionSetCalibrationPath->setEnabled(false);
+	ui->actionCalib_capture->setEnabled(false);
 
     for (auto item : image_control_ptr_vec)
     {
@@ -327,11 +333,17 @@ void MainWindow::on_actionStop_triggered()
 		item->is_playing = false;
         item->Stop_Acquire();
     }
+
+	if (calibrator_ptr != nullptr)
+	{
+		delete calibrator_ptr;
+		calibrator_ptr = nullptr;
+	}
 }
 
 void MainWindow::on_actionCalibrate_triggered()
 {
-	ui->actionSetCalibPath->setEnabled(true);
+	ui->actionSetCalibrationPath->setEnabled(true);
 	CaliParaSetDialog* caliparasetdialog = new CaliParaSetDialog;
 	qRegisterMetaType<CaliParameter>("CaliParameter");
 	connect(caliparasetdialog, SIGNAL(sendCaliParameter(CaliParameter)), this, SLOT(receiveCaliParameter(CaliParameter)));
@@ -405,6 +417,7 @@ void MainWindow::on_actionSetCalibPath_triggered()
 		calibrate_savefolder = tmp_path;
 
 		ui->actionCalib_capture->setEnabled(true);
+		ui->actionCalibrate->setDisabled(true);
     }
 }
 
@@ -464,17 +477,6 @@ void MainWindow::CalibAndShow()
 		res = calibrator_ptr->Calibrate(calibrator_ptr->left_img_ptr, cvLeftImg, calibrator_ptr->right_img_ptr, cvRightImg);
 		if (res >= 0)
 		{
-			static int cnt = 0;
-			QImage left_to_save = QImage((unsigned char*)calibrator_ptr->left_img_ptr, calibrator_ptr->m_img_width, calibrator_ptr->m_img_height, QImage::Format_Indexed8);
-			left_to_save.setColorTable(cvt.GetGray8bitQImageCorlorTable());
-			QImage right_to_save = QImage((unsigned char*)calibrator_ptr->right_img_ptr, calibrator_ptr->m_img_width, calibrator_ptr->m_img_height, QImage::Format_Indexed8);
-			right_to_save.setColorTable(cvt.GetGray8bitQImageCorlorTable());
-			std::string string_1 = std::string("C:\\Users\\GKJ\\Desktop\\camera1\\") + std::to_string(cnt) + ".tiff";
-			left_to_save.save(string_1.c_str());
-
-			std::string string_2 = std::string("C:\\Users\\GKJ\\Desktop\\camera2\\") + std::to_string(cnt) + ".tiff";
-			right_to_save.save(string_2.c_str());
-			cnt++;
 			qLeftImg = QImage(cvLeftImg.data, calibrator_ptr->m_img_width, calibrator_ptr->m_img_height, QImage::Format_RGB888);
 			qRightImg = QImage(cvRightImg.data, calibrator_ptr->m_img_width, calibrator_ptr->m_img_height, QImage::Format_RGB888);
 			qLeftImg.setColorTable(cvt.GetGray8bitQImageCorlorTable());
@@ -547,9 +549,39 @@ void MainWindow::CalibAndShow()
 		time_t t = time(0);
 		char tmp_time[64];
 		strftime(tmp_time, sizeof(tmp_time), "%Y%m%d%H%M", localtime(&t));
-		std::string tmp_path = calibrate_savefolder + "\\" + std::string(tmp_time) + "CameraCalibrate.txt";
+		std::string tmp_path = calibrate_savefolder + "\\" + std::string(tmp_time) + "CameraCalibrateResult.txt";
 		std::ofstream outfile(tmp_path.c_str());
-		outfile << "text";
+
+		size_t cnt = 0;
+		for (size_t i = 0; i < image_control_ptr_vec.size(); i++)
+		{
+			if (image_control_ptr_vec[i])
+			{
+				if (0 == i)
+				{
+					outfile << "The LEFT camera calibrate result:\n";
+					outfile << "Camera Matrix:\n";
+					outfile << calib_result.m_LeftCalibrateResult.m_CameraMatrix << '\n';
+					outfile << "Camera DistCoeffs:\n";
+					outfile << calib_result.m_LeftCalibrateResult.m_DistCoeffs << '\n';
+				}
+				else
+				{
+					outfile << "The RIGHT camera calibrate result:\n";
+					outfile << "Camera Matrix:\n";
+					outfile << calib_result.m_RightCalibrateResult.m_CameraMatrix << '\n';
+					outfile << "Camera DistCoeffs:\n";
+					outfile << calib_result.m_RightCalibrateResult.m_DistCoeffs << '\n';
+				}
+				cnt++;
+			}
+		}
+		if (2 == cnt)
+		{
+			outfile << "Rotate Matrix\n" << calib_result.R << '\n';
+			outfile << "Transverse Matrix\n" << calib_result.T << '\n';
+			outfile << "Total Err\n" << calib_result.m_RMS_error << '\n';
+		}
 		outfile.close();
 	}
 	//stop

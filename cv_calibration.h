@@ -42,6 +42,7 @@ private:
 	CalibrationBoardType m_CalibrationBoardType;
 
 	size_t m_RemainPicsToCalibrate ;
+	size_t m_TotalPicsToCalibrate;
 	cv::Size m_ImageSize, /* 图像的尺寸 */
 		m_BoardSize;	/* 标定板上每行、列的角点数 */
 	cv::Size m_SquareSize;  /* 实际的标定板上每个棋盘格的大小 */
@@ -59,7 +60,7 @@ private:
 class CameraCalibrator
 {
 public:
-	CameraCalibrator(bool left_camera, bool  right_camera, size_t image_width, size_t image_height, size_t board_corner_width, size_t board_corner_height, size_t real_square_size, size_t calibration_pic_amount, CalibrationBoardType cali_board_type);
+	CameraCalibrator(bool right_camera, bool left_camera, size_t image_width, size_t image_height, size_t board_corner_width, size_t board_corner_height, size_t real_square_size, size_t calibration_pic_amount, CalibrationBoardType cali_board_type);
 	~CameraCalibrator();
 	int Calibrate(void * left_img_ptr, cv::Mat &left_img_to_show, void * right_img_ptr, cv::Mat &right_img_to_show);
 	CameraCalibrateResult GetCalibrateResult();

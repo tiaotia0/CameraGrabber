@@ -9,6 +9,12 @@ BaseCalibrator::BaseCalibrator(size_t image_width, size_t image_height, size_t b
 	m_CameraMatrix = cv::Mat(3, 3, CV_32FC1, cv::Scalar::all(0));
 	m_DistCoeffs = cv::Mat(1, 5, CV_32FC1, cv::Scalar::all(0));
 	m_RemainPicsToCalibrate = calibration_pic_amount;
+	m_TotalPicsToCalibrate = calibration_pic_amount;
+
+	m_ImageCorners_seq = std::vector<std::vector<cv::Point2f>>(calibration_pic_amount, std::vector<cv::Point2f>(board_corner_width*board_corner_height));
+	m_RealObjectPoints_of_AllImages = std::vector<vector<cv::Point3f>>(calibration_pic_amount, std::vector<cv::Point3f>(board_corner_width*board_corner_height));
+	m_TvecsMat = vector<cv::Mat>(calibration_pic_amount);
+	m_RvecsMat = vector<cv::Mat>(calibration_pic_amount);
 	/* 初始化(每一幅图)标定板上角点的三维坐标(注：仅圆与方的棋盘格适用) */
 	for (size_t cnt = 0; cnt < m_RemainPicsToCalibrate; cnt++)
 	{
@@ -21,7 +27,7 @@ BaseCalibrator::BaseCalibrator(size_t image_width, size_t image_height, size_t b
 				tempPointSet.push_back(cv::Point3f(float(j * m_SquareSize.width), float(i * m_SquareSize.height), 0));
 			}
 		}
-		m_RealObjectPoints_of_AllImages.push_back(tempPointSet);
+		m_RealObjectPoints_of_AllImages[cnt] = tempPointSet;
 	}
 }
 
@@ -43,26 +49,26 @@ int BaseCalibrator::Calibrate(void * img_ptr, cv::Mat &img_to_show)
 		}
 		break;
 	case ChessBorad:
-		if (0==findChessboardCorners(img, m_BoardSize, image_points_tmp, cv::CALIB_CB_ADAPTIVE_THRESH + cv::CALIB_CB_NORMALIZE_IMAGE + cv::CALIB_CB_FAST_CHECK))
+		if (0==findChessboardCorners(img, m_BoardSize, image_points_tmp))
 		{
 			return -1;  //找不到角点
 		}
 		else
 		{
 			/* 亚像素精确化 */
-			//auto b=find4QuadCornerSubpix(img, image_points_tmp, m_BoardSize); //对粗提取的角点进行精确化
-			cv::cornerSubPix(img, image_points_tmp,cv::Size(11,11),cv::Size(-1,-1),cv::TermCriteria(CV_TERMCRIT_EPS+CV_TERMCRIT_ITER,30,0.1));
+			find4QuadCornerSubpix(img, image_points_tmp, m_BoardSize); //对粗提取的角点进行精确化
+			//cornerSubPix(view_gray,image_points_buf,Size(5,5),Size(-1,-1),TermCriteria(CV_TERMCRIT_EPS+CV_TERMCRIT_ITER,30,0.1));
 		}
 		break;
 	default:
 		return -1;
 		break;
 	}
-	m_ImageCorners_seq.push_back(image_points_tmp);  //保存亚像素角点
+	m_ImageCorners_seq[m_TotalPicsToCalibrate - m_RemainPicsToCalibrate] = image_points_tmp;	 //保存亚像素角点
 	/* 在图像上显示角点位置 */
-	//将单通道图像转换成3通道，以显示彩色的识别标定角点
-	cv::Mat three_channel = cv::Mat::zeros(img.rows, img.cols, CV_8UC3);
-	vector<cv::Mat> channels = { img ,img ,img };
+	//单通道转3通道以显示彩色识别角点
+	cv::Mat three_channel = cv::Mat::zeros(img.rows,img.cols, CV_8UC3); 
+	vector<cv::Mat> channels = { img ,img ,img }; 
 	merge(channels, three_channel);
 	drawChessboardCorners(three_channel, m_BoardSize, image_points_tmp, true); //用于在图片中标记角点
 	img_to_show = three_channel;
@@ -80,6 +86,7 @@ void BaseCalibrator::ErrorCaculate()
 {
 	m_Errorvec.clear();
 	vector<cv::Point2f> image_corners2d_new; /* 保存重新计算得到的投影点 */
+	image_corners2d_new.resize(m_BoardSize.width*m_BoardSize.height);
 	int totalPoints = 0;
 	double totalErr = 0;
 	for (size_t i = 0; i < m_RealObjectPoints_of_AllImages.size(); i++)
@@ -148,13 +155,15 @@ int CameraCalibrator::Calibrate(void * left_img_ptr, cv::Mat &left_img_to_show, 
 		{
 			if (tag_right < 0 && tag_left >=0)
 			{
-				m_Left->m_ImageCorners_seq.pop_back();
+				//m_Left->m_ImageCorners_seq.pop_back();
 				m_Left->m_RemainPicsToCalibrate += 1;
+				m_Left->m_ImageCorners_seq[m_Left->m_TotalPicsToCalibrate - m_Left->m_RemainPicsToCalibrate]= std::vector<cv::Point2f>(m_Left->m_BoardSize.width*m_Left->m_BoardSize.height);
 			}
 			if (tag_left < 0 && tag_right >=0)
 			{
-				m_Right->m_ImageCorners_seq.pop_back();
+				//m_Right->m_ImageCorners_seq.pop_back();
 				m_Right->m_RemainPicsToCalibrate += 1;
+				m_Right->m_ImageCorners_seq[m_Right->m_TotalPicsToCalibrate - m_Right->m_RemainPicsToCalibrate] = std::vector<cv::Point2f>(m_Right->m_BoardSize.width*m_Right->m_BoardSize.height);
 			}
 			return -1;
 		}
